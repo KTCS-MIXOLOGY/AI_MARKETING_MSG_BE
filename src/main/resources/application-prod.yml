@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL_PROD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${SPRING_DATASOURCE_USERNAME_PROD}
+    password: ${SPRING_DATASOURCE_PASSWORD_PROD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+jwt:
+  secret: ${JWT_SECRET_PROD}
+  access-token-expiration: 3600000
+  refresh-token-expiration: 1209600000
+
+logging:
+  level:
+    root: WARN
+    com.soar_be: INFO
