@@ -30,6 +30,8 @@ public enum ErrorCode {
 
     // User
     USER_NOT_FOUND(404, "User not found"),
+    DUPLICATE_USERNAME(400, "Username already exists"),
+    DUPLICATE_EMAIL(409, "Email already exists"),
 
     ;
 

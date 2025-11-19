@@ -3,9 +3,15 @@ package com.ai_marketing_msg_be.auth.service;
 import com.ai_marketing_msg_be.auth.details.CustomUserDetails;
 import com.ai_marketing_msg_be.auth.dto.AuthLoginRequest;
 import com.ai_marketing_msg_be.auth.dto.AuthLoginResponse;
+import com.ai_marketing_msg_be.auth.dto.AuthRegisterRequest;
+import com.ai_marketing_msg_be.auth.dto.AuthRegisterResponse;
 import com.ai_marketing_msg_be.auth.provider.JwtTokenProvider;
 import com.ai_marketing_msg_be.common.exception.BusinessException;
 import com.ai_marketing_msg_be.common.exception.ErrorCode;
+import com.ai_marketing_msg_be.domain.user.entity.User;
+import com.ai_marketing_msg_be.domain.user.entity.UserRole;
+import com.ai_marketing_msg_be.domain.user.entity.UserStatus;
+import com.ai_marketing_msg_be.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +19,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +30,8 @@ public class AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public AuthLoginResponse login(AuthLoginRequest request) {
@@ -31,6 +40,9 @@ public class AuthService {
                     request.getUsername(),
                     request.getPassword()
             );
+
+            log.debug("User authenticated successfully: userId={}, role={}",
+                    userDetails.getUserId(), userDetails.getRole());
 
             String accessToken = jwtTokenProvider.generateAccessToken(
                     userDetails.getUsername(),
@@ -43,6 +55,8 @@ public class AuthService {
                     userDetails.getUserId(),
                     userDetails.getRole()
             );
+
+            log.info("Login successful for username: {}", request.getUsername());
 
             return AuthLoginResponse.of(
                     accessToken,
@@ -60,6 +74,39 @@ public class AuthService {
         }
     }
 
+    @Transactional
+    public AuthRegisterResponse register(AuthRegisterRequest request) {
+        validateRegisterInfo(request);
+
+        log.debug("Validation passed. Encoding password for username: {}", request.getUsername());
+
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+
+        User user = User.builder()
+                .username(request.getUsername())
+                .password(encodedPassword)
+                .email(request.getEmail())
+                .name(request.getName())
+                .phone(request.getPhone())
+                .role(UserRole.EXECUTOR)
+                .status(UserStatus.PENDING)
+                .build();
+
+        User savedUser = userRepository.save(user);
+
+        log.info("User registered successfully: userId={}, username={}, status={}",
+                savedUser.getId(), savedUser.getUsername(), savedUser.getStatus());
+
+        return AuthRegisterResponse.of(
+                savedUser.getId(),
+                savedUser.getUsername(),
+                savedUser.getEmail(),
+                savedUser.getRole().name(),
+                savedUser.getStatus().name(),
+                savedUser.getCreatedAt().toString()
+        );
+    }
+
     private CustomUserDetails validateLoginInfo(String username, String password) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
@@ -68,5 +115,19 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return (CustomUserDetails) authentication.getPrincipal();
+    }
+
+    private void validateRegisterInfo(AuthRegisterRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            log.warn("Registration failed - duplicate username: {}", request.getUsername());
+            throw new BusinessException(ErrorCode.DUPLICATE_USERNAME);
+        }
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("Registration failed - duplicate email: {}", request.getEmail());
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+        }
+
+        log.debug("Validation successful for username: {}", request.getUsername());
     }
 }
