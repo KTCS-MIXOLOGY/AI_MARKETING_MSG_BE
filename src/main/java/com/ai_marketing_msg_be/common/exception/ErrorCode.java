@@ -22,7 +22,13 @@ public enum ErrorCode {
     // Auth
     UNAUTHORIZED(401, "Unauthorized"),
     FORBIDDEN(403, "Forbidden"),
-    INVALID_TOKEN(401, "Invalid token");
+    INVALID_TOKEN(401, "Invalid token"),
+    TOKEN_EXPIRED(401, "Token expired"),
+
+    // User
+    USER_NOT_FOUND(404, "User not found"),
+
+    ;
 
     private final int status;
     private final String message;
