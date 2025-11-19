@@ -11,6 +11,7 @@ public class CustomUserDetails implements UserDetails {
     private final Long userId;
     private final String username;
     private final String password;
+    private final String name;
     private final String role;
     private final boolean isApproved;
     private final Collection<? extends GrantedAuthority> authorities;
@@ -19,12 +20,14 @@ public class CustomUserDetails implements UserDetails {
             Long userId,
             String username,
             String password,
+            String name,
             String role,
             boolean isApproved
     ) {
         this.userId = userId;
         this.username = username;
         this.password = password;
+        this.name = name;
         this.role = role;
         this.isApproved = isApproved;
         this.authorities = Collections.singletonList(
@@ -37,6 +40,7 @@ public class CustomUserDetails implements UserDetails {
                 user.getId(),
                 user.getUsername(),
                 user.getPassword(),
+                user.getName(),  // 추가!
                 user.getRole().name(),
                 user.getStatus().name().equals("APPROVED")
         );
@@ -44,6 +48,10 @@ public class CustomUserDetails implements UserDetails {
 
     public Long getUserId() {
         return userId;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getRole() {
