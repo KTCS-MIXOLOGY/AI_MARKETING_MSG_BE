@@ -19,6 +19,14 @@ public enum ErrorCode {
     INVALID_CAMPAIGN_STATUS(400, "Invalid campaign status"),
     INVALID_CAMPAIGN_DATE(400, "Invalid campaign date range"),
 
+    // Product
+    PRODUCT_NOT_FOUND(404, "Product not found"),
+    PRODUCT_ALREADY_EXISTS(409, "Product already exists"),
+    PRODUCT_CANNOT_BE_DELETED(400, "Product cannot be deleted"),
+    INVALID_PRODUCT_PRICE(400, "Invalid product price"),
+    INVALID_DISCOUNT_RATE(400, "Invalid discount rate"),
+    OUT_OF_STOCK(400, "Product is out of stock"),
+
     // Auth
     UNAUTHORIZED(401, "Unauthorized"),
     FORBIDDEN(403, "Forbidden"),
