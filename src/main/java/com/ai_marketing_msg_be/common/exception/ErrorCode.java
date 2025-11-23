@@ -27,6 +27,10 @@ public enum ErrorCode {
     INVALID_DISCOUNT_RATE(400, "Invalid discount rate"),
     OUT_OF_STOCK(400, "Product is out of stock"),
 
+    // CampaignProduct
+    CAMPAIGN_PRODUCT_ALREADY_EXISTS(409, "Product is already added to this campaign"),
+    CAMPAIGN_PRODUCT_NOT_FOUND(404, "Campaign-Product mapping not found"),
+
     // Auth
     UNAUTHORIZED(401, "Unauthorized"),
     FORBIDDEN(403, "Forbidden"),
