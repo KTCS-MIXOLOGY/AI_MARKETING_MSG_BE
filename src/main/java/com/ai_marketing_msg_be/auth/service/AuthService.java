@@ -3,6 +3,8 @@ package com.ai_marketing_msg_be.auth.service;
 import com.ai_marketing_msg_be.auth.details.CustomUserDetails;
 import com.ai_marketing_msg_be.auth.dto.AuthLoginRequest;
 import com.ai_marketing_msg_be.auth.dto.AuthLoginResponse;
+import com.ai_marketing_msg_be.auth.dto.AuthRefreshRequest;
+import com.ai_marketing_msg_be.auth.dto.AuthRefreshResponse;
 import com.ai_marketing_msg_be.auth.dto.AuthRegisterRequest;
 import com.ai_marketing_msg_be.auth.dto.AuthRegisterResponse;
 import com.ai_marketing_msg_be.auth.provider.JwtTokenProvider;
@@ -107,6 +109,28 @@ public class AuthService {
         );
     }
 
+    @Transactional
+    public AuthRefreshResponse refresh(AuthRefreshRequest request) {
+        String refreshToken = request.getRefreshToken();
+
+        validateRefreshToken(refreshToken);
+
+        String accessToken = jwtTokenProvider.generateAccessToken(
+                jwtTokenProvider.getUsernameFromToken(refreshToken),
+                jwtTokenProvider.getUserIdFromToken(refreshToken),
+                jwtTokenProvider.getRoleFromToken(refreshToken)
+        );
+
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(
+                jwtTokenProvider.getUsernameFromToken(refreshToken),
+                jwtTokenProvider.getUserIdFromToken(refreshToken),
+                jwtTokenProvider.getRoleFromToken(refreshToken)
+        );
+
+        return AuthRefreshResponse.create(accessToken, refreshToken,
+                jwtTokenProvider.getAccessTokenExpirationInSeconds());
+    }
+
     private CustomUserDetails validateLoginInfo(String username, String password) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
@@ -129,5 +153,11 @@ public class AuthService {
         }
 
         log.debug("Validation successful for username: {}", request.getUsername());
+    }
+
+    private void validateRefreshToken(String refreshToken) {
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+        }
     }
 }

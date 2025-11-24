@@ -2,6 +2,8 @@ package com.ai_marketing_msg_be.auth.controller;
 
 import com.ai_marketing_msg_be.auth.dto.AuthLoginRequest;
 import com.ai_marketing_msg_be.auth.dto.AuthLoginResponse;
+import com.ai_marketing_msg_be.auth.dto.AuthRefreshRequest;
+import com.ai_marketing_msg_be.auth.dto.AuthRefreshResponse;
 import com.ai_marketing_msg_be.auth.dto.AuthRegisterRequest;
 import com.ai_marketing_msg_be.auth.dto.AuthRegisterResponse;
 import com.ai_marketing_msg_be.auth.service.AuthService;
@@ -38,4 +40,13 @@ public class AuthController {
         AuthRegisterResponse response = authService.register(request);
         return ApiResponse.created(response, httpRequest.getRequestURI());
     }
+
+    @PostMapping("/refresh")
+    public ApiResponse<AuthRefreshResponse> refresh(@Valid @RequestBody AuthRefreshRequest request,
+                                                    HttpServletRequest httpRequest) {
+        log.info("Refresh attempt for username: {}", request.getRefreshToken());
+        AuthRefreshResponse response = authService.refresh(request);
+        return ApiResponse.created(response, httpRequest.getRequestURI());
+    }
+
 }
