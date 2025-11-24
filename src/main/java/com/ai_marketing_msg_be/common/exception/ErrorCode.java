@@ -34,7 +34,16 @@ public enum ErrorCode {
     // Auth
     UNAUTHORIZED(401, "Unauthorized"),
     FORBIDDEN(403, "Forbidden"),
-    INVALID_TOKEN(401, "Invalid token");
+    INVALID_TOKEN(401, "Invalid token"),
+    TOKEN_EXPIRED(401, "Token expired"),
+    INVALID_PASSWORD(401, "Invalid password"),
+    USER_NOT_APPROVED(403, "User not approved"),
+    USER_REJECTED(403, "User rejected"),
+
+    // User
+    USER_NOT_FOUND(404, "User not found"),
+    DUPLICATE_USERNAME(400, "Username already exists"),
+    DUPLICATE_EMAIL(409, "Email already exists");
 
     private final int status;
     private final String message;
