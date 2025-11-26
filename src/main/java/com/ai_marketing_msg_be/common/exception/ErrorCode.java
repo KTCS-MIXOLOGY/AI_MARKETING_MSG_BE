@@ -53,7 +53,29 @@ public enum ErrorCode {
     // Customer
     CUSTOMER_NOT_FOUND(404, "Customer not found"),
     INVALID_SEARCH_TYPE(400, "Invalid search type"),
-    INVALID_SEGMENT_FILTER(400, "Invalid segment filter");
+    INVALID_SEGMENT_FILTER(400, "Invalid segment filter"),
+
+    // Message 조회 관련
+    MESSAGE_NOT_FOUND(404, "Message not found"),
+    INVALID_MESSAGE_TYPE(400, "Invalid message type"),
+    INVALID_MESSAGE_VERSION(400, "Invalid message version"),
+
+    // Message 저장 시 제약 조건
+    SEGMENT_REQUIRED(400, "Segment is required for SEGMENT type message"),
+    CUSTOMER_REQUIRED(400, "Customer is required for INDIVIDUAL type message"),
+    SEGMENT_NOT_ALLOWED(400, "Segment is not allowed for INDIVIDUAL type message"),
+    CUSTOMER_NOT_ALLOWED(400, "Customer is not allowed for SEGMENT type message"),
+
+    // Segment 관련
+    SEGMENT_NOT_FOUND(404, "Segment not found"),
+
+    // ToneManner 관련
+    INVALID_TONE_ID(400, "Invalid tone ID"),
+    TONE_NOT_FOUND(404, "Tone not found"),
+
+    // MessageGroup 관련
+    MESSAGE_GROUP_NOT_FOUND(404, "Message group not found"),
+    INVALID_MESSAGE_GROUP_ID(400, "Invalid message group ID");
 
     private final int status;
     private final String message;
