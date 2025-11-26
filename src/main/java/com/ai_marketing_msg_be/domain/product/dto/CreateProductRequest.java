@@ -40,9 +40,6 @@ public class CreateProductRequest {
     @Schema(description = "혜택 내용", example = "3년 약정 시 월 1.1만 원 할인")
     private String benefits;
 
-    @Schema(description = "가입 조건", example = "신규 가입 고객 대상")
-    private String conditions;
-
     @Schema(description = "재고 상태", example = "IN_STOCK")
     private StockStatus stockStatus;
 
@@ -56,7 +53,6 @@ public class CreateProductRequest {
                 .price(this.price)
                 .discountRate(this.discountRate)
                 .benefits(this.benefits)
-                .conditions(this.conditions)
                 .stockStatus(this.stockStatus)
                 .build();
     }
