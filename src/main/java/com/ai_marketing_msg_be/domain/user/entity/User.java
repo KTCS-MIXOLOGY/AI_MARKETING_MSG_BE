@@ -1,6 +1,8 @@
 package com.ai_marketing_msg_be.domain.user.entity;
 
 import com.ai_marketing_msg_be.common.entity.BaseEntity;
+import com.ai_marketing_msg_be.common.exception.BusinessException;
+import com.ai_marketing_msg_be.common.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,4 +57,47 @@ public class User extends BaseEntity {
     @Column(name = "status", length = 20, nullable = false)
     @Builder.Default
     private UserStatus status = UserStatus.PENDING;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    public void approve(UserRole role) {
+        if (this.status == UserStatus.APPROVED) {
+            throw new BusinessException(ErrorCode.USER_ALREADY_APPROVED);
+        }
+        if (this.deletedAt != null) {
+            throw new BusinessException(ErrorCode.USER_ALREADY_DELETED);
+        }
+        this.status = UserStatus.APPROVED;
+        this.role = role;
+    }
+
+    public void updateInfo(String email, String phone, String department, UserRole role) {
+        if (this.deletedAt != null) {
+            throw new BusinessException(ErrorCode.USER_ALREADY_DELETED);
+        }
+        if (email != null) {
+            this.email = email;
+        }
+        if (phone != null) {
+            this.phone = phone;
+        }
+        if (department != null) {
+            this.department = department;
+        }
+        if (role != null) {
+            this.role = role;
+        }
+    }
+
+    public void softDelete() {
+        if (this.deletedAt != null) {
+            throw new BusinessException(ErrorCode.USER_ALREADY_DELETED);
+        }
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
+    }
 }

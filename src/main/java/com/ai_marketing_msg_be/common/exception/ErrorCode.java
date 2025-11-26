@@ -43,8 +43,13 @@ public enum ErrorCode {
     // User
     USER_NOT_FOUND(404, "User not found"),
     DUPLICATE_USERNAME(400, "Username already exists"),
-    DUPLICATE_EMAIL(409, "Email already exists");
-
+    DUPLICATE_EMAIL(409, "Email already exists"),
+    USER_ALREADY_APPROVED(400, "User is already approved"),
+    DUPLICATE_PHONE(409, "Phone number already exists"),
+    INVALID_USER_ROLE(400, "Invalid user role"),
+    INVALID_USER_STATUS(400, "Invalid user status"),
+    USER_ALREADY_DELETED(400, "User is already deleted");
+    
     private final int status;
     private final String message;
 }
