@@ -38,22 +38,18 @@ public class Product extends BaseEntity {
     @Column(name = "benefits", columnDefinition = "TEXT")
     private String benefits;
 
-    @Column(name = "conditions", columnDefinition = "TEXT")
-    private String conditions;
-
     @Column(name = "stock_status", length = 20)
     @Enumerated(EnumType.STRING)
     private StockStatus stockStatus;
 
     @Builder
     public Product(String name, String category, BigDecimal price, BigDecimal discountRate,
-                   String benefits, String conditions, StockStatus stockStatus) {
+                   String benefits, StockStatus stockStatus) {
         this.name = name;
         this.category = category;
         this.price = price;
         this.discountRate = discountRate;
         this.benefits = benefits;
-        this.conditions = conditions;
         this.stockStatus = stockStatus != null ? stockStatus : StockStatus.IN_STOCK;
     }
 
@@ -61,13 +57,12 @@ public class Product extends BaseEntity {
      * 상품 정보 업데이트
      */
     public void update(String name, String category, BigDecimal price, BigDecimal discountRate,
-                      String benefits, String conditions, StockStatus stockStatus) {
+                      String benefits, StockStatus stockStatus) {
         this.name = name;
         this.category = category;
         this.price = price;
         this.discountRate = discountRate;
         this.benefits = benefits;
-        this.conditions = conditions;
         this.stockStatus = stockStatus;
     }
 

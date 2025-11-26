@@ -25,7 +25,6 @@ public class ProductDetailDto {
     private BigDecimal price;
     private BigDecimal discountRate;
     private String benefits;
-    private String conditions;
     private StockStatus stockStatus;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -42,7 +41,6 @@ public class ProductDetailDto {
                 .price(product.getPrice())
                 .discountRate(product.getDiscountRate())
                 .benefits(product.getBenefits())
-                .conditions(product.getConditions())
                 .stockStatus(product.getStockStatus())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
