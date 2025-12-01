@@ -62,6 +62,9 @@ public class SecurityConfig {
                         // 관리자 API - ADMIN만
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
+                        // 실행자 API - EXECUTOR만
+                        .requestMatchers("/executors/**").hasAnyRole("EXECUTOR")
+
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )

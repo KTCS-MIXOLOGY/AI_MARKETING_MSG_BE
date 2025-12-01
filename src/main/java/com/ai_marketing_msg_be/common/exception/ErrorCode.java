@@ -48,8 +48,13 @@ public enum ErrorCode {
     DUPLICATE_PHONE(409, "Phone number already exists"),
     INVALID_USER_ROLE(400, "Invalid user role"),
     INVALID_USER_STATUS(400, "Invalid user status"),
-    USER_ALREADY_DELETED(400, "User is already deleted");
-    
+    USER_ALREADY_DELETED(400, "User is already deleted"),
+
+    // Customer
+    CUSTOMER_NOT_FOUND(404, "Customer not found"),
+    INVALID_SEARCH_TYPE(400, "Invalid search type"),
+    INVALID_SEGMENT_FILTER(400, "Invalid segment filter");
+
     private final int status;
     private final String message;
 }
