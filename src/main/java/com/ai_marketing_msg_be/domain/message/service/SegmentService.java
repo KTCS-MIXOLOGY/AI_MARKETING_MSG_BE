@@ -5,9 +5,13 @@ import com.ai_marketing_msg_be.common.exception.ErrorCode;
 import com.ai_marketing_msg_be.domain.customer.dto.CustomerCountResponse;
 import com.ai_marketing_msg_be.domain.customer.dto.SegmentFilterRequest;
 import com.ai_marketing_msg_be.domain.customer.service.CustomerService;
+import com.ai_marketing_msg_be.domain.message.dto.GetSegmentDetailResponse;
+import com.ai_marketing_msg_be.domain.message.dto.GetSegmentListResponse;
+import com.ai_marketing_msg_be.domain.message.dto.SegmentDto;
 import com.ai_marketing_msg_be.domain.message.entity.Segment;
 import com.ai_marketing_msg_be.domain.message.repository.SegmentRepository;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -69,6 +73,39 @@ public class SegmentService {
     public Segment getSegment(Long segmentId) {
         return segmentRepository.findBySegmentId(segmentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SEGMENT_NOT_FOUND));
+    }
+
+    /**
+     * 세그먼트 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public GetSegmentListResponse getSegmentList() {
+        log.info("Fetching all segments");
+
+        List<Segment> segments = segmentRepository.findAll();
+
+        List<SegmentDto> segmentDtos = segments.stream()
+                .map(SegmentDto::fromEntity)
+                .collect(Collectors.toList());
+
+        return GetSegmentListResponse.builder()
+                .segments(segmentDtos)
+                .totalCount(segmentDtos.size())
+                .build();
+    }
+
+    /**
+     * 세그먼트 상세 조회
+     */
+    @Transactional(readOnly = true)
+    public GetSegmentDetailResponse getSegmentDetail(Long segmentId) {
+        log.info("Fetching segment detail for segmentId: {}", segmentId);
+
+        Segment segment = segmentRepository.findBySegmentId(segmentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SEGMENT_NOT_FOUND,
+                        "세그먼트를 찾을 수 없습니다. segmentId: " + segmentId));
+
+        return GetSegmentDetailResponse.fromEntity(segment);
     }
 
     private boolean isRegionsEqual(List<String> regions1, List<String> regions2) {
