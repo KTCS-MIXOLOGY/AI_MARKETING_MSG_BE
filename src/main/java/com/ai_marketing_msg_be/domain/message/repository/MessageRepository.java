@@ -45,4 +45,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     Page<Message> findByCampaign_CampaignId(Long campaignId, Pageable pageable);
 
+    @Query("SELECT COUNT(m) > 0 FROM Message m WHERE m.product.productId = :productId")
+    boolean existsByProductId(@Param("productId") Long productId);
 }
