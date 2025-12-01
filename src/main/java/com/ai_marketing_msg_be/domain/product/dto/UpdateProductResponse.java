@@ -3,13 +3,12 @@ package com.ai_marketing_msg_be.domain.product.dto;
 import com.ai_marketing_msg_be.domain.product.entity.Product;
 import com.ai_marketing_msg_be.domain.product.entity.StockStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * 상품 수정 응답 DTO
@@ -25,7 +24,6 @@ public class UpdateProductResponse {
     private BigDecimal price;
     private BigDecimal discountRate;
     private String benefits;
-    private String conditions;
     private StockStatus stockStatus;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -39,7 +37,6 @@ public class UpdateProductResponse {
                 .price(product.getPrice())
                 .discountRate(product.getDiscountRate())
                 .benefits(product.getBenefits())
-                .conditions(product.getConditions())
                 .stockStatus(product.getStockStatus())
                 .updatedAt(product.getUpdatedAt())
                 .build();
