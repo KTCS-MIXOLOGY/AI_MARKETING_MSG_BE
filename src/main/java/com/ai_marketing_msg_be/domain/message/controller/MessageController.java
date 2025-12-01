@@ -30,8 +30,8 @@ public class MessageController {
     public ApiResponse<SaveMessageResponse> saveMessage(
             @Valid @RequestBody SaveMessageRequest request,
             HttpServletRequest httpRequest) {
-        log.info("Save message request: type={}, groupId={}",
-                request.getMessageType(), request.getMessageGroupId());
+        log.info("Save message request: type={}",
+                request.getMessageType());
 
         SaveMessageResponse response = messageService.saveMessage(request);
 
