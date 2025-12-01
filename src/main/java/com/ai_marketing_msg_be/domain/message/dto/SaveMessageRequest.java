@@ -17,8 +17,6 @@ public class SaveMessageRequest {
     @NotBlank(message = "Message type is required")
     private String messageType;
 
-    private String messageGroupId;
-
     private SegmentFilterRequest segmentFilter;
 
     private Long customerId;

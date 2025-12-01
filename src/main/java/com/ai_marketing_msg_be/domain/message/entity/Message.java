@@ -35,9 +35,6 @@ public class Message extends BaseEntity {
     @Column(name = "message_id")
     private Long messageId;
 
-    @Column(name = "message_group_id", length = 50)
-    private String messageGroupId;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -258,7 +255,6 @@ public class Message extends BaseEntity {
 
         public Message build() {
             Message message = new Message();
-            message.messageGroupId = this.messageGroupId;
             message.user = this.user;
             message.campaign = this.campaign;
             message.product = this.product;

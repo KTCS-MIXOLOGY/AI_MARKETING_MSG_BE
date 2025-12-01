@@ -17,7 +17,6 @@ import lombok.NoArgsConstructor;
 public class MessageDetailResponse {
 
     private Long messageId;
-    private String messageGroupId;
     private String messageType;
     private String messageContent;
     private Integer messageVersion;
@@ -42,7 +41,6 @@ public class MessageDetailResponse {
     public static MessageDetailResponse from(Message message) {
         MessageDetailResponseBuilder builder = MessageDetailResponse.builder()
                 .messageId(message.getMessageId())
-                .messageGroupId(message.getMessageGroupId())
                 .messageType(message.getMessageType().name())
                 .messageContent(message.getMessageContent())
                 .messageVersion(message.getMessageVersion())

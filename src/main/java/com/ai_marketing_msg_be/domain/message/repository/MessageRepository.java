@@ -45,11 +45,4 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     Page<Message> findByCampaign_CampaignId(Long campaignId, Pageable pageable);
 
-
-    @Query("""
-            SELECT m FROM Message m
-            WHERE m.messageGroupId = :messageGroupId
-            ORDER BY m.messageVersion ASC
-            """)
-    java.util.List<Message> findByMessageGroupId(@Param("messageGroupId") String messageGroupId);
 }
