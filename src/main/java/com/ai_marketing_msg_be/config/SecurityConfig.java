@@ -57,7 +57,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
 
                         // 조회 API는 인증 없이 허용 (개발 편의성)
-                        .requestMatchers("/campaigns/**", "/products/**").permitAll()
+                        .requestMatchers("/campaigns/**", "/products/**", "/admin/messages/**", "/test/**").permitAll()
 
                         // 관리자 API - ADMIN만
                         .requestMatchers("/admin/**").hasRole("ADMIN")

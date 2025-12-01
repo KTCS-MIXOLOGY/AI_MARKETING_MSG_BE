@@ -94,7 +94,6 @@ public class ProductService {
                 request.getPrice(),
                 request.getDiscountRate(),
                 request.getBenefits(),
-                request.getConditions(),
                 request.getStockStatus()
         );
 
