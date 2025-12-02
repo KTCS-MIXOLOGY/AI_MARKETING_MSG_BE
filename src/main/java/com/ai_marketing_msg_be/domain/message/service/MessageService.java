@@ -46,7 +46,7 @@ public class MessageService {
 
     @Transactional
     public SaveMessageResponse saveMessage(SaveMessageRequest request) {
-        log.info("Saving message: type={}, groupId={}", request.getMessageType(), request.getMessageGroupId());
+        log.info("Saving message: type={}, groupId={}", request.getMessageType());
 
         User currentUser = getCurrentUser();
 
@@ -54,7 +54,6 @@ public class MessageService {
         Product product = getProduct(request.getProductId());
 
         Message.MessageBuilder builder = Message.builder()
-                .messageGroupId(request.getMessageGroupId())
                 .user(currentUser)
                 .campaign(campaign)
                 .product(product)

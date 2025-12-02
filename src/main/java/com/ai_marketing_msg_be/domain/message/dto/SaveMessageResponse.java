@@ -27,7 +27,6 @@ public class SaveMessageResponse {
     public static SaveMessageResponse from(Message message) {
         return SaveMessageResponse.builder()
                 .messageId(message.getMessageId())
-                .messageGroupId(message.getMessageGroupId())
                 .messageContent(message.getMessageContent())
                 .messageVersion(message.getMessageVersion())
                 .characterCount(message.getCharacterCount())

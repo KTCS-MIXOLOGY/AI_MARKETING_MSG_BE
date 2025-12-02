@@ -8,6 +8,7 @@ import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -56,14 +57,17 @@ public class SecurityConfig {
                         // Health check 허용 (배포 시 필요)
                         .requestMatchers("/actuator/health").permitAll()
 
-                        // 조회 API는 인증 없이 허용 (개발 편의성)
-                        .requestMatchers("/campaigns/**", "/products/**", "/admin/messages/**", "/test/**").permitAll()
+                        // 캠페인 조회 - ADMIN, EXECUTOR 모두 가능
+                        .requestMatchers(HttpMethod.GET, "/campaigns/**").hasAnyRole("ADMIN", "EXECUTOR")
 
-                        // 관리자 API - ADMIN만
+                        // 상품 조회 - ADMIN, EXECUTOR 모두 가능
+                        .requestMatchers(HttpMethod.GET, "/products/**").hasAnyRole("ADMIN", "EXECUTOR")
+
+                        // 관리자 API 전체 - ADMIN만 가능
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                        // 실행자 API - EXECUTOR만
-                        .requestMatchers("/executors/**").hasAnyRole("EXECUTOR")
+                        // 실행자 API 전체 - EXECUTOR만 가능
+                        .requestMatchers("/executor/**").hasRole("EXECUTOR")
 
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()

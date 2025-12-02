@@ -3,7 +3,14 @@ package com.ai_marketing_msg_be.domain.product.service;
 import com.ai_marketing_msg_be.common.dto.PageResponse;
 import com.ai_marketing_msg_be.common.exception.BusinessException;
 import com.ai_marketing_msg_be.common.exception.ErrorCode;
-import com.ai_marketing_msg_be.domain.product.dto.*;
+import com.ai_marketing_msg_be.domain.message.repository.MessageRepository;
+import com.ai_marketing_msg_be.domain.product.dto.CreateProductRequest;
+import com.ai_marketing_msg_be.domain.product.dto.CreateProductResponse;
+import com.ai_marketing_msg_be.domain.product.dto.DeleteProductResponse;
+import com.ai_marketing_msg_be.domain.product.dto.ProductDetailDto;
+import com.ai_marketing_msg_be.domain.product.dto.ProductDto;
+import com.ai_marketing_msg_be.domain.product.dto.UpdateProductRequest;
+import com.ai_marketing_msg_be.domain.product.dto.UpdateProductResponse;
 import com.ai_marketing_msg_be.domain.product.entity.Product;
 import com.ai_marketing_msg_be.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final MessageRepository messageRepository;
 
     /**
      * 상품 목록 조회 (페이징)
@@ -109,20 +117,17 @@ public class ProductService {
      */
     @Transactional
     public DeleteProductResponse deleteProduct(Long productId) {
-        log.info("Deleting product with productId: {}", productId);
-
-        // 상품 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND,
                         "상품을 찾을 수 없습니다. productId: " + productId));
 
-        // 삭제 가능 여부 확인 (품절 상태만 삭제 가능)
-        if (!product.canBeDeleted()) {
+        boolean hasMessages = messageRepository.existsByProductId(productId);
+        if (hasMessages) {
             throw new BusinessException(ErrorCode.PRODUCT_CANNOT_BE_DELETED,
-                    "재고가 있는 상품은 삭제할 수 없습니다. 먼저 품절 상태로 변경해주세요.");
+                    "해당 상품으로 생성된 메시지가 존재하여 삭제할 수 없습니다."
+            );
         }
 
-        // 삭제
         productRepository.delete(product);
         log.info("Product deleted successfully with productId: {}", productId);
 
