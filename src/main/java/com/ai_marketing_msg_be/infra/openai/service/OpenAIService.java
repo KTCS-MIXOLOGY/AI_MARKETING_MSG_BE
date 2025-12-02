@@ -26,9 +26,6 @@ public class OpenAIService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    /**
-     * OpenAI Chat Completion API 호출
-     */
     public OpenAIResponse callChatCompletion(OpenAIRequest request) {
         try {
             log.info("OpenAI API 호출 시작 - model: {}", request.getModel());
@@ -61,12 +58,8 @@ public class OpenAIService {
         }
     }
 
-    /**
-     * JSON 응답 파싱
-     */
     public <T> T parseJsonResponse(String content, Class<T> clazz) {
         try {
-            // GPT가 ```json ... ``` 형식으로 응답할 수 있으므로 제거
             String cleanedContent = content
                     .replaceAll("```json\\s*", "")
                     .replaceAll("```\\s*", "")
