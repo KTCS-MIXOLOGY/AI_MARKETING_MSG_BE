@@ -18,6 +18,15 @@ jwt:
   access-token-expiration: 3600000
   refresh-token-expiration: 1209600000
 
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
+    url: https://api.openai.com/v1/chat/completions
+    model: gpt-4-turbo
+    timeout: 30000
+    max-tokens: 500
+    temperature: 0.7
+
 logging:
   level:
     root: INFO
