@@ -144,8 +144,16 @@ public class ProductController {
             HttpServletRequest request) {
 
         log.info("GET /products/search?name={} - searching for: {}", name, name);
+
+        // 빈 문자열이나 공백만 있는 경우 빈 결과 반환
+        if (name == null || name.trim().isEmpty()) {
+            log.warn("Empty search keyword provided, returning empty result");
+            PageResponse<ProductDto> emptyResponse = PageResponse.empty();
+            return ResponseEntity.ok(ApiResponse.ok(emptyResponse, request.getRequestURI()));
+        }
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        PageResponse<ProductDto> response = productService.searchProductsByName(name, pageable);
+        PageResponse<ProductDto> response = productService.searchProductsByName(name.trim(), pageable);
 
         return ResponseEntity.ok(ApiResponse.ok(response, request.getRequestURI()));
     }

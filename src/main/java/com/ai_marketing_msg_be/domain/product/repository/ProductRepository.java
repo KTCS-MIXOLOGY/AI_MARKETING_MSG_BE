@@ -35,9 +35,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByStockStatus(StockStatus stockStatus, Pageable pageable);
 
     /**
-     * 상품명으로 검색 (부분 일치)
+     * 상품명으로 검색 (부분 일치, 대소문자 무시)
      */
-    Page<Product> findByNameContaining(String name, Pageable pageable);
+    @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    Page<Product> findByNameContaining(@Param("name") String name, Pageable pageable);
 
     /**
      * 가격 범위로 검색
