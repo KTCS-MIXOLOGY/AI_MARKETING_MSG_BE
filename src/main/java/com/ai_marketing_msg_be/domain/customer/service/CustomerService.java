@@ -70,6 +70,18 @@ public class CustomerService {
         return CustomerDetailResponse.from(customer);
     }
 
+    @Transactional
+    public int countBySegmentFilter(SegmentFilterRequest filter) {
+        log.info("Counting customers by segment filter: {}", filter);
+
+        Specification<Customer> spec = CustomerSpecification.withFilters(filter);
+        long count = customerRepository.count(spec);
+
+        log.info("Customer count result: {} customers", count);
+
+        return (int) count;
+    }
+
 
     private SearchType parseSearchType(String searchTypeStr) {
         try {
