@@ -182,9 +182,18 @@ public class MessageGenerationService {
     }
 
     private ToneManner findToneMannerById(String toneId) {
-        if (toneId == null || toneId.isEmpty()) {
+        if (toneId == null || toneId.isBlank()) {
+            log.info("toneId가 null이므로 기본값 FRIENDLY 사용");
             return ToneManner.FRIENDLY;
         }
-        return ToneManner.fromToneId(toneId);
+
+        ToneManner tone = ToneManner.fromToneId(toneId);
+        if (tone == null) {
+            log.warn("유효하지 않은 toneId: {}. 기본값 FRIENDLY 적용", toneId);
+            return ToneManner.FRIENDLY;
+        }
+
+        log.info("toneId: {} -> {}", toneId, tone.getToneName());
+        return tone;
     }
 }

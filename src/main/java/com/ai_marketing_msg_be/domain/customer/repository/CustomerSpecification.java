@@ -28,7 +28,6 @@ public class CustomerSpecification {
                 }
             }
 
-            // 성별 필터
             if (filter.getGender() != null) {
                 try {
                     Gender gender = Gender.valueOf(filter.getGender().toUpperCase());
@@ -38,7 +37,6 @@ public class CustomerSpecification {
                 }
             }
 
-            // 지역 필터 (복수 선택)
             if (filter.getRegions() != null && !filter.getRegions().isEmpty()) {
                 List<Region> regions = new ArrayList<>();
                 for (String regionStr : filter.getRegions()) {
@@ -53,17 +51,14 @@ public class CustomerSpecification {
                 }
             }
 
-            // 멤버십 등급 필터
             if (filter.getMembershipLevel() != null) {
                 try {
                     MembershipLevel level = MembershipLevel.valueOf(filter.getMembershipLevel().toUpperCase());
                     predicates.add(criteriaBuilder.equal(root.get("membershipLevel"), level));
                 } catch (IllegalArgumentException e) {
-                    // 잘못된 등급 값은 무시
                 }
             }
 
-            // 최근 구매일 필터 (recencyMaxDays)
             if (filter.getRecencyMaxDays() != null && filter.getRecencyMaxDays() > 0) {
                 LocalDateTime cutoffDate = LocalDateTime.now().minusDays(filter.getRecencyMaxDays());
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(
