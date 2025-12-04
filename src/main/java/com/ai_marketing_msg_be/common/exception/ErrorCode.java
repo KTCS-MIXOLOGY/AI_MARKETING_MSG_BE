@@ -45,6 +45,7 @@ public enum ErrorCode {
     DUPLICATE_USERNAME(400, "Username already exists"),
     DUPLICATE_EMAIL(409, "Email already exists"),
     USER_ALREADY_APPROVED(400, "User is already approved"),
+    USER_ALREADY_REJECTED(400, "User is already rejected"),
     DUPLICATE_PHONE(409, "Phone number already exists"),
     INVALID_USER_ROLE(400, "Invalid user role"),
     INVALID_USER_STATUS(400, "Invalid user status"),
