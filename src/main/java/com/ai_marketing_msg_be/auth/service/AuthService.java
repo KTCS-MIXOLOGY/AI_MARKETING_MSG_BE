@@ -91,6 +91,7 @@ public class AuthService {
                 .name(request.getName())
                 .phone(request.getPhone())
                 .role(UserRole.EXECUTOR)
+                .department(request.getDepartment())
                 .status(UserStatus.PENDING)
                 .build();
 
@@ -104,6 +105,7 @@ public class AuthService {
                 savedUser.getUsername(),
                 savedUser.getEmail(),
                 savedUser.getRole().name(),
+                savedUser.getDepartment(),
                 savedUser.getStatus().name(),
                 savedUser.getCreatedAt().toString()
         );

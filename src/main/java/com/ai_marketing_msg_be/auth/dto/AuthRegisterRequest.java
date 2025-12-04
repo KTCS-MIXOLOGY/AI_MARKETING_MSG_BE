@@ -36,4 +36,7 @@ public class AuthRegisterRequest {
 
     @NotBlank(message = "Role is required")
     private String role;
+
+    @NotBlank(message = "Department is required")
+    private String department;
 }
