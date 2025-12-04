@@ -13,6 +13,7 @@ public class AuthRegisterResponse {
     private String username;
     private String email;
     private String role;
+    private String department;
     private String status;
     private String createdAt;
     private String message;
@@ -22,6 +23,7 @@ public class AuthRegisterResponse {
             String username,
             String email,
             String role,
+            String department,
             String status,
             String createdAt
     ) {
@@ -30,6 +32,7 @@ public class AuthRegisterResponse {
                 .username(username)
                 .email(email)
                 .role(role)
+                .department(department)
                 .status(status)
                 .createdAt(createdAt)
                 .message("회원가입이 완료되었습니다. 관리자 승인 후 로그인 가능합니다.")
