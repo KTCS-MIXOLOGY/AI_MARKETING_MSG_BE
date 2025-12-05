@@ -50,6 +50,7 @@ public enum ErrorCode {
     INVALID_USER_ROLE(400, "Invalid user role"),
     INVALID_USER_STATUS(400, "Invalid user status"),
     USER_ALREADY_DELETED(400, "User is already deleted"),
+    SAME_PASSWORD(400, "New Password is same with old one"),
 
     // Customer
     CUSTOMER_NOT_FOUND(404, "Customer not found"),

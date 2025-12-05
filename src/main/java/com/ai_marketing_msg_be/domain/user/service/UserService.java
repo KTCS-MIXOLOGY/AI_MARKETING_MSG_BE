@@ -4,11 +4,14 @@ import com.ai_marketing_msg_be.common.exception.BusinessException;
 import com.ai_marketing_msg_be.common.exception.ErrorCode;
 import com.ai_marketing_msg_be.domain.user.dto.GetUserDetailResponse;
 import com.ai_marketing_msg_be.domain.user.dto.UpdateMyInfoRequest;
+import com.ai_marketing_msg_be.domain.user.dto.UpdatePasswordRequest;
+import com.ai_marketing_msg_be.domain.user.dto.UpdatePasswordResponse;
 import com.ai_marketing_msg_be.domain.user.dto.UpdateUserResponse;
 import com.ai_marketing_msg_be.domain.user.entity.User;
 import com.ai_marketing_msg_be.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public GetUserDetailResponse me(Long userId) {
@@ -44,6 +48,30 @@ public class UserService {
                 userId, user.getEmail(), user.getPhone(), user.getDepartment());
 
         return UpdateUserResponse.from(user);
+
+    }
+
+    @Transactional
+    public UpdatePasswordResponse updatePassword(Long userId, UpdatePasswordRequest request) {
+        User user = getUser(userId);
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            log.warn("Password update failed - Invalid current password for userId: {}", userId);
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            log.warn("Password update failed - New password is same as current password for userId: {}", userId);
+            throw new BusinessException(ErrorCode.SAME_PASSWORD);
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+
+        user.updatePassword(encodedPassword);
+
+        log.info("Password updated successfully - userId: {}", userId);
+
+        return new UpdatePasswordResponse("비밀번호가 성공적으로 변경되었습니다.");
 
     }
 

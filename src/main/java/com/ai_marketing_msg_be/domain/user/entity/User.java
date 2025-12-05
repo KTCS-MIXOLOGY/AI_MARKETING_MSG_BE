@@ -108,6 +108,10 @@ public class User extends BaseEntity {
         this.deletedAt = LocalDateTime.now();
     }
 
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
     public boolean isDeleted() {
         return this.deletedAt != null;
     }
