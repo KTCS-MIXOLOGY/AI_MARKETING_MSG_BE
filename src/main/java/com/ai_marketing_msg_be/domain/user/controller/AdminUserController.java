@@ -7,6 +7,8 @@ import com.ai_marketing_msg_be.domain.user.dto.ApproveUserResponse;
 import com.ai_marketing_msg_be.domain.user.dto.DeleteUserResponse;
 import com.ai_marketing_msg_be.domain.user.dto.GetUserDetailResponse;
 import com.ai_marketing_msg_be.domain.user.dto.GetUserListResponse;
+import com.ai_marketing_msg_be.domain.user.dto.RejectUserRequest;
+import com.ai_marketing_msg_be.domain.user.dto.RejectUserResponse;
 import com.ai_marketing_msg_be.domain.user.dto.UpdateUserRequest;
 import com.ai_marketing_msg_be.domain.user.dto.UpdateUserResponse;
 import com.ai_marketing_msg_be.domain.user.service.AdminUserService;
@@ -57,6 +59,17 @@ public class AdminUserController {
             HttpServletRequest httpRequest) {
         log.info("Admin user approve request: userId={}, role={}", userId, request.getRole());
         ApproveUserResponse response = adminUserService.approveUser(userId, request);
+        return ApiResponse.ok(response, httpRequest.getRequestURI());
+    }
+
+    @PatchMapping("/{userId}/reject")
+    public ApiResponse<RejectUserResponse> rejectUser(
+            @PathVariable Long userId,
+            @Valid @RequestBody RejectUserRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        log.info("Admin user reject request: userId={}, role={}", userId, request.getRole());
+        RejectUserResponse response = adminUserService.rejectUser(userId, request);
         return ApiResponse.ok(response, httpRequest.getRequestURI());
     }
 

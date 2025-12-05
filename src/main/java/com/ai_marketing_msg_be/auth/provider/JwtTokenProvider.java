@@ -1,5 +1,6 @@
 package com.ai_marketing_msg_be.auth.provider;
 
+import com.ai_marketing_msg_be.auth.details.CustomUserDetails;
 import com.ai_marketing_msg_be.common.exception.BusinessException;
 import com.ai_marketing_msg_be.common.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
@@ -19,8 +20,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -73,20 +72,17 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) {
         Claims claims = getClaims(token);
         String username = claims.getSubject();
+        Long userId = claims.get("userId", Long.class);
         String role = claims.get("role", String.class);
 
-        if (username == null || role == null) {
+        if (username == null || userId == null || role == null) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
 
         Collection<? extends GrantedAuthority> authorities =
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_" + role));
 
-        UserDetails userDetails = User.builder()
-                .username(username)
-                .password("")
-                .authorities(authorities)
-                .build();
+        CustomUserDetails userDetails = new CustomUserDetails(userId, username, "", "", role, true);
 
         return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
     }
