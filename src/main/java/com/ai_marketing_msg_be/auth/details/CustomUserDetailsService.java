@@ -1,6 +1,5 @@
 package com.ai_marketing_msg_be.auth.details;
 
-import com.ai_marketing_msg_be.common.exception.BusinessException;
 import com.ai_marketing_msg_be.common.exception.ErrorCode;
 import com.ai_marketing_msg_be.domain.user.entity.User;
 import com.ai_marketing_msg_be.domain.user.repository.UserRepository;
@@ -20,8 +19,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findByUsernameAndNotDeleted(username)
+                .orElseThrow(() -> new UsernameNotFoundException(ErrorCode.USER_NOT_FOUND.getMessage()));
 
         return CustomUserDetails.from(user);
     }
