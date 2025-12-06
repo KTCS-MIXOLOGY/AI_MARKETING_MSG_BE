@@ -129,7 +129,7 @@ public class AuthService {
                 jwtTokenProvider.getRoleFromToken(refreshToken)
         );
 
-        return AuthRefreshResponse.create(accessToken, refreshToken,
+        return AuthRefreshResponse.create(accessToken, newRefreshToken,
                 jwtTokenProvider.getAccessTokenExpirationInSeconds());
     }
 
