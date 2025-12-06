@@ -1,8 +1,6 @@
 package com.ai_marketing_msg_be.domain.user.repository;
 
 import com.ai_marketing_msg_be.domain.user.entity.User;
-import com.ai_marketing_msg_be.domain.user.entity.UserRole;
-import com.ai_marketing_msg_be.domain.user.entity.UserStatus;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,10 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
-
-    boolean existsByRole(UserRole role);
-
-    Page<User> findByStatus(UserStatus status, Pageable pageable);
 
     @Query("SELECT u FROM User u WHERE u.deletedAt IS NULL")
     Page<User> findAllActive(Pageable pageable);

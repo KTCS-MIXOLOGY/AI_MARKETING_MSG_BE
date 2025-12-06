@@ -85,7 +85,7 @@ public class UserService {
     }
 
     private User getUser(Long userId) {
-        return userRepository.findById(userId)
+        return userRepository.findByIdAndNotDeleted(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 }
