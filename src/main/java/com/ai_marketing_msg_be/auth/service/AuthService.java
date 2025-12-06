@@ -83,16 +83,16 @@ public class AuthService {
         log.debug("Validation passed. Encoding password for username: {}", request.getUsername());
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
-
+        UserRole role = UserRole.valueOf(request.getRole());
         User user = User.builder()
                 .username(request.getUsername())
                 .password(encodedPassword)
                 .email(request.getEmail())
                 .name(request.getName())
                 .phone(request.getPhone())
-                .role(UserRole.EXECUTOR)
+                .role(role)
                 .department(request.getDepartment())
-                .status(UserStatus.PENDING)
+                .status(role == UserRole.EXECUTOR ? UserStatus.PENDING : UserStatus.APPROVED)
                 .build();
 
         User savedUser = userRepository.save(user);
