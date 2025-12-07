@@ -3,6 +3,8 @@ package com.ai_marketing_msg_be.domain.message.service;
 import com.ai_marketing_msg_be.domain.customer.dto.SegmentFilterRequest;
 import com.ai_marketing_msg_be.domain.customer.entity.Customer;
 import com.ai_marketing_msg_be.domain.message.vo.PromptContext;
+import com.ai_marketing_msg_be.domain.product.entity.Product;
+import java.math.BigDecimal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -150,22 +152,31 @@ public class PromptTemplateEngine {
         StringBuilder info = new StringBuilder();
         info.append("[상품 정보]\n");
 
-        info.append(String.format("- 상품명: %s\n", context.getProduct().getName()));
-        info.append(String.format("- 카테고리: %s\n", context.getProduct().getCategory()));
+        Product product = context.getProduct();
 
-        if (context.getProduct().getPrice() != null) {
-            info.append(String.format("- 가격: %,d원\n", context.getProduct().getPrice().intValue()));
+        info.append(String.format("- 상품명: %s\n", product.getName()));
+        info.append(String.format("- 카테고리: %s\n", product.getCategory()));
+
+        if (product.getPrice() != null) {
+            info.append(String.format("**정상 가격**: %,d원\n", product.getPrice().intValue()));
+
+            if (product.getDiscountRate() != null && product.getDiscountRate().intValue() > 0) {
+                BigDecimal discountedPrice = product.getDiscountedPrice();
+                info.append(String.format("**할인율**: %d%% 할인\n", product.getDiscountRate().intValue()));
+                info.append(String.format("**할인가**: %,d원\n", discountedPrice.intValue()));
+            }
         }
 
-        if (context.getProduct().getDiscountRate() != null &&
-                context.getProduct().getDiscountRate().intValue() > 0) {
-            info.append(String.format("- 할인율: %d%%\n", context.getProduct().getDiscountRate().intValue()));
+        if (product.getBenefits() != null && !product.getBenefits().isEmpty()) {
+            info.append("\n**📌 주요 혜택 (메시지에 반드시 포함할 것)**:\n");
+
+            String[] benefitsList = product.getBenefits().split("/");
+            for (String benefit : benefitsList) {
+                info.append(String.format("  • %s\n", benefit.trim()));
+            }
         }
 
-        if (context.getProduct().getBenefits() != null) {
-            info.append(String.format("- 주요 혜택: %s\n", context.getProduct().getBenefits()));
-        }
-
+        info.append("\n⚠️ **중요**: 위 혜택 중 최소 2~3가지는 메시지에 구체적으로 포함해주세요.\n");
         info.append("\n");
         return info.toString();
     }
@@ -189,12 +200,16 @@ public class PromptTemplateEngine {
     private String buildGenerationRequirements() {
         StringBuilder req = new StringBuilder();
 
+        req.append("📝 **메시지 생성 요구사항**:\n\n");
         req.append("위 정보를 바탕으로 SMS/알림톡용 마케팅 메시지 3가지 버전을 생성해주세요.\n\n");
-        req.append("각 메시지는:\n");
-        req.append("1. 90-120자 이내\n");
-        req.append("2. 명확한 행동 유도(CTA) 포함\n");
-        req.append("3. 이모지 적절히 활용\n");
-        req.append("4. 버전별로 톤이나 강조점이 약간씩 다르게\n\n");
+        req.append("각 메시지는 다음을 반드시 포함해야 합니다:\n");
+        req.append("1. **상품명** 또는 상품의 핵심 가치 제안\n");
+        req.append("2. **구체적인 혜택** (위에 나열된 혜택 중 2~3가지)\n");
+        req.append("3. **가격/할인 정보** (있는 경우)\n");
+        req.append("4. **명확한 행동 유도(CTA)**\n");
+        req.append("5. 이모지를 적절히 활용하여 시각적 효과 극대화\n\n");
+
+        req.append("⚠️ **주의사항**: 캠페인 설명만 나열하지 말고, 상품의 구체적인 혜택을 반드시 포함하세요!\n\n");
         req.append("JSON 형식으로만 응답해주세요:\n");
         req.append("[\n");
         req.append("  {\"version\": 1, \"content\": \"메시지 내용\"},\n");
