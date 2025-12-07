@@ -69,6 +69,8 @@ public class SecurityConfig {
                         // 실행자 API 전체 - EXECUTOR만 가능
                         .requestMatchers("/executor/**").hasRole("EXECUTOR")
 
+                        .requestMatchers("/users/me/**").authenticated()  // ← 이 부분 추가!
+
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )

@@ -72,6 +72,17 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
+    public void reject(UserRole role) {
+        if (this.status == UserStatus.REJECTED) {
+            throw new BusinessException(ErrorCode.USER_ALREADY_REJECTED);
+        }
+        if (this.deletedAt != null) {
+            throw new BusinessException(ErrorCode.USER_ALREADY_DELETED);
+        }
+        this.status = UserStatus.REJECTED;
+        this.role = role;
+    }
+
     public void updateInfo(String email, String phone, String department, UserRole role) {
         if (this.deletedAt != null) {
             throw new BusinessException(ErrorCode.USER_ALREADY_DELETED);
@@ -95,6 +106,10 @@ public class User extends BaseEntity {
             throw new BusinessException(ErrorCode.USER_ALREADY_DELETED);
         }
         this.deletedAt = LocalDateTime.now();
+    }
+
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
     }
 
     public boolean isDeleted() {

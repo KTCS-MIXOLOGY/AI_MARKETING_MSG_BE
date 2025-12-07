@@ -83,15 +83,16 @@ public class AuthService {
         log.debug("Validation passed. Encoding password for username: {}", request.getUsername());
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
-
+        UserRole role = UserRole.valueOf(request.getRole());
         User user = User.builder()
                 .username(request.getUsername())
                 .password(encodedPassword)
                 .email(request.getEmail())
                 .name(request.getName())
                 .phone(request.getPhone())
-                .role(UserRole.EXECUTOR)
-                .status(UserStatus.PENDING)
+                .role(role)
+                .department(request.getDepartment())
+                .status(role == UserRole.EXECUTOR ? UserStatus.PENDING : UserStatus.APPROVED)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -104,6 +105,7 @@ public class AuthService {
                 savedUser.getUsername(),
                 savedUser.getEmail(),
                 savedUser.getRole().name(),
+                savedUser.getDepartment(),
                 savedUser.getStatus().name(),
                 savedUser.getCreatedAt().toString()
         );
@@ -127,7 +129,7 @@ public class AuthService {
                 jwtTokenProvider.getRoleFromToken(refreshToken)
         );
 
-        return AuthRefreshResponse.create(accessToken, refreshToken,
+        return AuthRefreshResponse.create(accessToken, newRefreshToken,
                 jwtTokenProvider.getAccessTokenExpirationInSeconds());
     }
 

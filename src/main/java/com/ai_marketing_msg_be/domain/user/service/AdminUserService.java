@@ -8,6 +8,8 @@ import com.ai_marketing_msg_be.domain.user.dto.ApproveUserResponse;
 import com.ai_marketing_msg_be.domain.user.dto.DeleteUserResponse;
 import com.ai_marketing_msg_be.domain.user.dto.GetUserDetailResponse;
 import com.ai_marketing_msg_be.domain.user.dto.GetUserListResponse;
+import com.ai_marketing_msg_be.domain.user.dto.RejectUserRequest;
+import com.ai_marketing_msg_be.domain.user.dto.RejectUserResponse;
 import com.ai_marketing_msg_be.domain.user.dto.UpdateUserRequest;
 import com.ai_marketing_msg_be.domain.user.dto.UpdateUserResponse;
 import com.ai_marketing_msg_be.domain.user.entity.User;
@@ -65,6 +67,21 @@ public class AdminUserService {
                 userId, user.getUsername(), role);
 
         return ApproveUserResponse.from(user);
+    }
+
+    @Transactional
+    public RejectUserResponse rejectUser(Long userId, RejectUserRequest request) {
+        User user = userRepository.findByIdAndNotDeleted(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        UserRole role = parseUserRole(request.getRole());
+
+        user.reject(role);
+
+        log.info("User rejected: userId={}, username={}, role={}",
+                userId, user.getUsername(), role);
+
+        return RejectUserResponse.from(user);
     }
 
     @Transactional

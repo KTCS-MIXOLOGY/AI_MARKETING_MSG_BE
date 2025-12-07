@@ -1,5 +1,6 @@
 package com.ai_marketing_msg_be.auth.details;
 
+import com.ai_marketing_msg_be.domain.user.entity.User;
 import java.util.Collection;
 import java.util.Collections;
 import org.springframework.security.core.GrantedAuthority;
@@ -35,12 +36,12 @@ public class CustomUserDetails implements UserDetails {
         );
     }
 
-    public static CustomUserDetails from(com.ai_marketing_msg_be.domain.user.entity.User user) {
+    public static CustomUserDetails from(User user) {
         return new CustomUserDetails(
                 user.getId(),
                 user.getUsername(),
                 user.getPassword(),
-                user.getName(),  // 추가!
+                user.getName(),
                 user.getRole().name(),
                 user.getStatus().name().equals("APPROVED")
         );
