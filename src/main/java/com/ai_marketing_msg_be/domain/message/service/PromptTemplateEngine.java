@@ -103,8 +103,11 @@ public class PromptTemplateEngine {
             info.append(String.format("- 지역: %s\n", String.join(", ", filter.getRegions())));
         }
 
-        if (filter.getMembershipLevel() != null) {
-            info.append(String.format("- 멤버십: %s 등급\n", filter.getMembershipLevel()));
+        if (filter.getMembershipLevel() != null && !filter.getMembershipLevel().trim().isEmpty()) {
+            String membershipKr = getMembershipDescription(filter.getMembershipLevel());
+            info.append(String.format("- 멤버십: %s 등급\n", membershipKr));
+        } else {
+            info.append("- 멤버십: 전체 등급 (등급 제한 없음)\n");
         }
 
         if (filter.getRecencyMaxDays() != null) {
@@ -112,6 +115,25 @@ public class PromptTemplateEngine {
         }
 
         return info.toString();
+    }
+
+    private String getMembershipDescription(String membershipLevel) {
+        switch (membershipLevel) {
+            case "BASIC":
+                return "일반";
+            case "WHITE":
+                return "화이트";
+            case "SILVER":
+                return "실버";
+            case "GOLD":
+                return "골드";
+            case "VIP":
+                return "VIP";
+            case "VVIP":
+                return "VVIP";
+            default:
+                return membershipLevel;
+        }
     }
 
     private String buildCustomerInfo(Customer customer) {
@@ -235,8 +257,14 @@ public class PromptTemplateEngine {
 
         req.append("**글자 수**: 90-120자 이내\n\n");
 
-        req.append("❌ **피해야 할 것**: 캠페인 설명만 나열하거나, 상품 설명만 나열하지 마세요!\n");
-        req.append("✅ **해야 할 것**: 캠페인 특별 혜택 + 상품 핵심 혜택을 조합하여 고객에게 매력적으로 전달하세요!\n\n");
+        req.append("❌ **피해야 할 것**: \n");
+        req.append("  - 캠페인 설명만 나열하거나, 상품 설명만 나열하지 마세요!\n");
+        req.append("  - 타겟 세그먼트에 명시되지 않은 멤버십 등급으로 호칭하지 마세요!\n");
+        req.append("  - '전체 등급'일 때 특정 등급(골드, VIP 등)을 임의로 선택하지 마세요!\n\n");
+        req.append("✅ **해야 할 것**: \n");
+        req.append("  - 캠페인 특별 혜택 + 상품 핵심 혜택을 조합하여 매력적으로 전달하세요!\n");
+        req.append("  - [타겟 세그먼트]에 명시된 멤버십 등급을 정확히 사용하세요!\n");
+        req.append("  - 멤버십이 '전체 등급'이면 '고객님' 또는 '연령대 기반 호칭'을 사용하세요!\n\n");
 
         req.append("JSON 형식으로만 응답해주세요:\n");
         req.append("[\n");

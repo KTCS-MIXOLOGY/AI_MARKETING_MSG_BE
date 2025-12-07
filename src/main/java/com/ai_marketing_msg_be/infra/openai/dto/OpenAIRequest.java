@@ -18,5 +18,5 @@ public class OpenAIRequest {
 
     @JsonProperty("max_tokens")
     @Builder.Default
-    private Integer maxTokens = 500;
+    private Integer maxTokens = 1500;
 }
