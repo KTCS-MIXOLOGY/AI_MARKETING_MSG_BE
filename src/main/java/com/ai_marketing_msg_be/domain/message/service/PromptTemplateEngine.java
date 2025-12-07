@@ -1,5 +1,6 @@
 package com.ai_marketing_msg_be.domain.message.service;
 
+import com.ai_marketing_msg_be.domain.campaign.entity.Campaign;
 import com.ai_marketing_msg_be.domain.customer.dto.SegmentFilterRequest;
 import com.ai_marketing_msg_be.domain.customer.entity.Customer;
 import com.ai_marketing_msg_be.domain.message.vo.PromptContext;
@@ -33,16 +34,8 @@ public class PromptTemplateEngine {
         prompt.append(buildSegmentInfo(context.getSegmentFilter()));
         prompt.append(String.format("- 타겟 고객 수: %,d명\n\n", context.getTargetCustomerCount()));
 
-        prompt.append("[캠페인 정보]\n");
-        prompt.append(String.format("- 캠페인명: %s\n", context.getCampaign().getName()));
-        prompt.append(String.format("- 캠페인 유형: %s\n", context.getCampaign().getType().getDisplayName()));
-        if (context.getCampaign().getDescription() != null) {
-            prompt.append(String.format("- 캠페인 목적: %s\n", context.getCampaign().getDescription()));
-        }
-        prompt.append("\n");
-
         prompt.append(buildProductInfo(context));
-
+        prompt.append(buildCampaignInfo(context));
         prompt.append(buildToneInfo(context));
 
         if (context.getAdditionalContext() != null && !context.getAdditionalContext().isEmpty()) {
@@ -181,6 +174,36 @@ public class PromptTemplateEngine {
         return info.toString();
     }
 
+    private String buildCampaignInfo(PromptContext context) {
+        StringBuilder info = new StringBuilder();
+        Campaign campaign = context.getCampaign();
+
+        info.append("[진행 중인 마케팅 캠페인 정보]\n");
+        info.append(String.format("- 캠페인명: %s\n", campaign.getName()));
+        info.append(String.format("- 캠페인 유형: %s\n", campaign.getType().getDisplayName()));
+
+        if (campaign.getDescription() != null && !campaign.getDescription().isEmpty()) {
+            info.append("\n🎁 **캠페인 특별 혜택 (메시지에 반드시 1개 이상 포함)**:\n");
+
+            String[] benefits = campaign.getDescription().split("[,.]");
+            int count = 1;
+            for (String benefit : benefits) {
+                String trimmed = benefit.trim();
+                if (!trimmed.isEmpty()) {
+                    info.append(String.format("  %d. %s\n", count++, trimmed));
+                }
+            }
+        }
+
+        if (campaign.getStartDate() != null && campaign.getEndDate() != null) {
+            info.append(String.format("\n- 캠페인 기간: %s ~ %s\n",
+                    campaign.getStartDate(), campaign.getEndDate()));
+        }
+
+        info.append("\n");
+        return info.toString();
+    }
+
     private String buildToneInfo(PromptContext context) {
         StringBuilder info = new StringBuilder();
         info.append("[톤앤매너]\n");
@@ -203,13 +226,18 @@ public class PromptTemplateEngine {
         req.append("📝 **메시지 생성 요구사항**:\n\n");
         req.append("위 정보를 바탕으로 SMS/알림톡용 마케팅 메시지 3가지 버전을 생성해주세요.\n\n");
         req.append("각 메시지는 다음을 반드시 포함해야 합니다:\n");
-        req.append("1. **상품명** 또는 상품의 핵심 가치 제안\n");
-        req.append("2. **구체적인 혜택** (위에 나열된 혜택 중 2~3가지)\n");
+        req.append("1. **캠페인의 특별 혜택** 1~2가지 (위 '캠페인 특별 혜택'에서 선택)\n");
+        req.append("2. **상품의 핵심 혜택** 1~2가지 (위 '상품 핵심 혜택'에서 선택)\n");
         req.append("3. **가격/할인 정보** (있는 경우)\n");
-        req.append("4. **명확한 행동 유도(CTA)**\n");
-        req.append("5. 이모지를 적절히 활용하여 시각적 효과 극대화\n\n");
+        req.append("4. **타겟 고객에 대한 호칭** (예: VIP 고객님, 20대 여성 고객님)\n");
+        req.append("5. **명확한 행동 유도(CTA)**\n");
+        req.append("6. 이모지를 적절히 활용하여 시각적 효과 극대화\n\n");
 
-        req.append("⚠️ **주의사항**: 캠페인 설명만 나열하지 말고, 상품의 구체적인 혜택을 반드시 포함하세요!\n\n");
+        req.append("**글자 수**: 90-120자 이내\n\n");
+
+        req.append("❌ **피해야 할 것**: 캠페인 설명만 나열하거나, 상품 설명만 나열하지 마세요!\n");
+        req.append("✅ **해야 할 것**: 캠페인 특별 혜택 + 상품 핵심 혜택을 조합하여 고객에게 매력적으로 전달하세요!\n\n");
+
         req.append("JSON 형식으로만 응답해주세요:\n");
         req.append("[\n");
         req.append("  {\"version\": 1, \"content\": \"메시지 내용\"},\n");
