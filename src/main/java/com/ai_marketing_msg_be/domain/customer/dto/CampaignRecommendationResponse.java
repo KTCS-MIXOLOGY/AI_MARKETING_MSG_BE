@@ -51,8 +51,21 @@ public class CampaignRecommendationResponse {
         @Schema(description = "멤버십 등급", example = "GOLD")
         private String membershipLevel;
 
+        @Schema(description = "가입일", example = "2012-02-14")
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private String joinDate;
+
+        @Schema(description = "이용 기간 (년)", example = "13")
+        private Integer yearsAsCustomer;
+
+        @Schema(description = "거주 지역", example = "광주")
+        private String region;
+
         @Schema(description = "현재 요금제", example = "5G 슬림")
         private String currentPlan;
+
+        @Schema(description = "현재 기기", example = "갤럭시 S23")
+        private String currentDevice;
 
         @Schema(description = "평균 데이터 사용량", example = "35.5")
         private String avgDataUsage;

@@ -79,12 +79,16 @@ public enum ErrorCode {
     MESSAGE_GROUP_NOT_FOUND(404, "Message group not found"),
     INVALID_MESSAGE_GROUP_ID(400, "Invalid message group ID"),
 
-    // AI 관련 에러 (기존 코드 하단에 추가)
-    OPENAI_API_CALL_FAILED(500, "OpenAI API 호출에 실패했습니다."),
-    OPENAI_API_TIMEOUT(408, "OpenAI API 요청 시간이 초과되었습니다."),
-    INVALID_JSON_RESPONSE(500, "AI 응답 파싱에 실패했습니다."),
-    MESSAGE_GENERATION_FAILED(500, "메시지 생성에 실패했습니다."),
-    INVALID_PROMPT_CONTEXT(400, "프롬프트 생성에 필요한 정보가 부족합니다.");
+    // AI/OpenAI
+    OPENAI_API_CALL_FAILED(500, "Failed to call OpenAI API"),
+    OPENAI_API_TIMEOUT(408, "OpenAI API request timed out"),
+    INVALID_JSON_RESPONSE(500, "Failed to parse AI response"),
+    MESSAGE_GENERATION_FAILED(500, "Failed to generate message"),
+    INVALID_PROMPT_CONTEXT(400, "Insufficient information for prompt generation"),
+
+    // Recommendation
+    RECOMMENDATION_FAILED(500, "Failed to generate recommendation");
+
 
     private final int status;
     private final String message;
