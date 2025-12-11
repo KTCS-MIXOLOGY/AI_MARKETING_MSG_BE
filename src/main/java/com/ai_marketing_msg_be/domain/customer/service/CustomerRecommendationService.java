@@ -340,128 +340,92 @@ public class CustomerRecommendationService {
     private String buildProductRecommendationPrompt(Customer customer, List<Product> products) {
         StringBuilder prompt = new StringBuilder();
 
-        prompt.append("당신은 KT의 전문 상품 추천 컨설턴트입니다.\n");
-        prompt.append("고객의 프로필과 현재 이용 상황을 심층 분석하여 가장 적합한 상품 3가지를 추천해주세요.\n\n");
+        prompt.append("🚨 **절대 준수 규칙 - 위반 시 추천 무효** 🚨\n\n");
 
-        prompt.append("🎯 **핵심 미션**: 아래 고객을 위한 최적의 상품 3가지를 찾아주세요!\n\n");
-
-        prompt.append(String.format("⚠️ **중요**: 이 고객은 **%d세**입니다. ", customer.getAge()));
-        prompt.append("상품명에 연령 제한이 있으면 절대 준수하세요!\n\n");
-
-        prompt.append("🚫 **절대 추천 금지 상품**:\n");
-        prompt.append("- 군인 전용 상품 (고객의 군인 여부 정보 없음)\n");
-        prompt.append("- 외국인 전용 상품 (고객의 국적 정보 없음)\n");
-        prompt.append("- 장애인/복지 대상자 전용 상품 (고객의 복지 대상 여부 정보 없음)\n");
-        prompt.append("→ 이러한 상품은 이미 필터링되었으므로 목록에 없습니다.\n\n");
-
-        getCustomerProfileInfoToJson(customer, prompt);
-
-        prompt.append("### 📋 추천 가능 상품 목록\n");
-        prompt.append("✅ 아래 상품들은 이미 연령 및 특수 조건 필터링을 거쳤습니다.\n");
-        prompt.append(buildDetailedProductListInfo(products));
-        prompt.append("\n");
-
-        prompt.append("## 🎯 추천 기준 (반드시 준수)\n\n");
-
-        prompt.append("#### 1. 논리적 적합성 검증 (필수)\n");
-        prompt.append("추천 전에 다음을 반드시 확인하세요:\n");
-        prompt.append(String.format("- ⚠️ **이 고객은 %d세입니다!** 상품명에 연령 제한이 있으면 절대 추천 금지!\n",
-                customer.getAge()));
+        prompt.append("❌ 규칙0: **반드시 정확히 3개 추천** (1개나 2개는 불가)\n");
 
         if (customer.getCurrentPlan() != null) {
             String currentPlan = customer.getCurrentPlan();
             if (currentPlan.contains("5G")) {
-                prompt.append(String.format("- 🚨 **다운그레이드 금지**: 현재 '%s' 사용 중 → LTE나 3G 요금제 추천 절대 금지!\n", currentPlan));
-                prompt.append("- 5G 요금제 또는 동급 이상 상품만 추천 가능\n");
+                prompt.append(String.format("❌ 규칙1: 고객은 '%s' 사용 중 → **LTE/3G 추천 절대 금지**\n", currentPlan));
             } else if (currentPlan.contains("LTE")) {
-                prompt.append(String.format("- 🚨 **다운그레이드 금지**: 현재 '%s' 사용 중 → 3G 요금제 추천 절대 금지!\n", currentPlan));
-                prompt.append("- LTE 요금제 또는 5G 업그레이드 상품 추천 가능\n");
+                prompt.append(String.format("❌ 규칙1: 고객은 '%s' 사용 중 → **3G 추천 절대 금지**\n", currentPlan));
             }
+        }
+
+        if (customer.getAvgDataUsageGb() != null) {
+            BigDecimal dataUsage = customer.getAvgDataUsageGb();
+            prompt.append(String.format("❌ 규칙2: 고객 데이터 %.1fGB/월 → **%.1fGB 미만 요금제 추천 금지**\n",
+                    dataUsage, dataUsage));
+            prompt.append("   예: 36.8GB 고객에게 15GB 요금제 추천 불가!\n");
         }
 
         if (customer.getMembershipLevel() != null) {
-            String membership = customer.getMembershipLevel().getDescription();
-            if (membership.contains("VIP") || membership.contains("VVIP")) {
-                prompt.append(
-                        String.format("- 💎 **프리미엄 고객**: %s 등급 → 저가형 상품(슬림/베이직) 추천 지양, 프리미엄/시그니처급 우선\n", membership));
-            }
-        }
-
-        if (customer.getAvgDataUsageGb() != null && customer.getAvgDataUsageGb().compareTo(new BigDecimal("50")) > 0) {
-            prompt.append(
-                    String.format("- 📊 **헤비 유저**: 월 %.1fGB 사용 → 대용량/무제한 데이터 요금제 필수\n", customer.getAvgDataUsageGb()));
-        }
-
-        if (customer.getAvgDataUsageGb() != null) {
-            prompt.append(String.format("- 💾 **데이터 사용량 검증 필수**: 추천 요금제의 데이터 제공량이 %.1fGB 이상이어야 함\n",
-                    customer.getAvgDataUsageGb()));
-            prompt.append("  (무제한 요금제는 자동 통과, 요고 다이렉트 같은 소용량 요금제는 사용량 부족 시 추천 금지)\n");
-        }
-
-        if (customer.getMembershipLevel() != null && customer.getCurrentPlan() != null) {
             String membership = customer.getMembershipLevel().name();
-            String currentPlan = customer.getCurrentPlan();
-
-            prompt.append("- 💰 **멤버십별 가격대 제한** (모바일 요금제 한정):\n");
-
             if (membership.equals("WHITE") || membership.equals("BASIC")) {
-                prompt.append(String.format("  WHITE/BASIC 등급 → 현재 요금제(%s) 기준 ±20%% 가격대 내 추천 권장\n", currentPlan));
-                prompt.append("  (예: 5만원 요금제 → 4만~6만원대 추천, 급격한 업셀링 지양)\n");
+                prompt.append("❌ 규칙3: WHITE/BASIC → **현재 가격 ±20% 초과 금지**\n");
+                prompt.append("   예: 5만원 사용 중 → 4~6만원대만 OK, 9만원 절대 불가!\n");
             } else if (membership.equals("SILVER") || membership.equals("GOLD")) {
-                prompt.append(String.format("  SILVER/GOLD 등급 → 현재 요금제(%s) 기준 ±30%% 가격대 내 추천 권장\n", currentPlan));
-                prompt.append("  (적당한 업셀링 가능)\n");
+                prompt.append("❌ 규칙3: SILVER/GOLD → **현재 가격 ±30% 초과 지양**\n");
             } else if (membership.contains("VIP")) {
-                prompt.append(String.format("  VIP/VVIP 등급 → 프리미엄 고객이므로 가격대 제한 없음\n"));
-                prompt.append("  (고가 요금제 자유롭게 추천 가능)\n");
+                prompt.append("✅ 규칙3: VIP/VVIP → 가격 제한 없음 (프리미엄 OK)\n");
             }
         }
 
-        prompt.append("- 모바일 카테고리 상품이라면 위 조건들을 철저히 검토\n");
-        prompt.append("- 기타 카테고리(OTT, 디바이스, 생활편의 등)는 고객 프로필에 맞춰 자유롭게 추천\n\n");
+        prompt.append("\n🔥 위 4가지 규칙 위반 = 즉시 제외! 🔥\n");
+        prompt.append("=".repeat(60) + "\n\n");
 
-        prompt.append("#### 2. reason 작성 3단계 (구체적으로)\n\n");
-        prompt.append("**[1단계] 고객의 현재 상황 분석**\n");
-        prompt.append(String.format("- %s님은 %d세, %s, %s 거주\n",
+        prompt.append("## 고객\n");
+        prompt.append(String.format("%s / %d세 / %s\n",
                 customer.getName(),
                 customer.getAge(),
-                customer.getMembershipLevel() != null ? customer.getMembershipLevel().getDescription() : "일반",
-                customer.getRegion() != null ? customer.getRegion().getDescription() : ""));
-
-        if (customer.getJoinDate() != null) {
-            long yearsAsCustomer = ChronoUnit.YEARS.between(customer.getJoinDate(), LocalDateTime.now());
-            prompt.append(String.format("- %d년 이용 고객\n", yearsAsCustomer));
-        }
-
-        if (customer.getCurrentPlan() != null) {
-            prompt.append(String.format("- 현재 %s 사용 중\n", customer.getCurrentPlan()));
-        }
-
+                customer.getMembershipLevel() != null ? customer.getMembershipLevel().getDescription() : "일반"));
+        prompt.append(String.format("현재: %s", customer.getCurrentPlan()));
         if (customer.getAvgDataUsageGb() != null) {
-            prompt.append(String.format("- 데이터 %.1fGB 사용\n", customer.getAvgDataUsageGb()));
+            prompt.append(String.format(" / %.1fGB 사용", customer.getAvgDataUsageGb()));
         }
+        prompt.append("\n\n");
 
-        if (customer.getRecencyDays() != null) {
-            prompt.append(String.format("- %d일 동안 미구매\n", customer.getRecencyDays()));
+        prompt.append("## 상품 목록\n");
+        for (Product p : products) {
+            String priceStr = p.getPrice() != null ? String.format("%,d원", p.getPrice().intValue()) : "가격 미정";
+            prompt.append(String.format("[%d] %s | %s | %s\n",
+                    p.getProductId(),
+                    p.getName(),
+                    priceStr,
+                    p.getCategory()));
         }
         prompt.append("\n");
 
-        prompt.append("**[2단계] 상품의 핵심 가치 파악**\n");
-        prompt.append("- 이 상품이 제공하는 핵심 혜택은 무엇인가?\n");
-        prompt.append("- 이 상품의 타겟 고객층은 누구인가?\n");
-        prompt.append("- 가격 대비 제공되는 가치는 충분한가?\n\n");
+        prompt.append("## 추천 전 체크리스트\n");
+        prompt.append("[ ] 다운그레이드 아닌가?\n");
+        prompt.append("[ ] 데이터 사용량 충분한가?\n");
+        prompt.append("[ ] 멤버십 가격대 맞는가?\n");
+        prompt.append("\n⚠️ 모바일 요금제가 부족하면 OTT/디바이스/생활편의 카테고리 추천\n\n");
 
-        prompt.append("**[3단계] 연결고리 명확히 설명**\n");
-        prompt.append("reason에 반드시 포함할 내용:\n");
-        prompt.append("1. 이 상품이 **왜 이 고객에게** 필요한가? (구체적 근거)\n");
-        prompt.append("2. 고객의 현재 상황에서 이 상품이 어떤 문제를 해결하는가?\n");
-        prompt.append("3. 이 상품을 통해 고객이 얻는 실질적 이익은 무엇인가?\n\n");
+        prompt.append("## 응답 (JSON만, 다른 텍스트 금지)\n");
+        prompt.append("⚠️ **반드시 정확히 3개 추천 필수** (더 많거나 적으면 안됨)\n\n");
 
-        String exampleReason = buildProductRecommendationExampleReason(customer);
+        prompt.append("### ✍️ reason 작성 규칙 (매우 중요)\n");
+        prompt.append("❌ 나쁜 예: \"적합하여 추천드립니다\" (너무 짧고 성의없음)\n");
+        prompt.append("❌ 나쁜 예: \"김다혜, 27세, 5G 스탠다드 사용 중\" (단어만 나열)\n");
+        prompt.append(
+                "✅ 좋은 예: \"김다혜님은 27세 WHITE 등급으로 5G 스탠다드 요금제를 사용 중이며 월 36.8GB의 데이터를 사용합니다. 이 상품은 데이터 무제한과 OTT 혜택을 제공하여, 고객의 높은 데이터 사용 패턴과 멤버십 등급을 고려할 때 실질적인 비용 절감과 편의성 향상을 제공합니다.\"\n\n");
 
-        prompt.append("**reason 예시:**\n");
-        prompt.append(String.format("\"%s\"\n\n", exampleReason));
+        prompt.append("**reason 필수 포함 (3가지 모두):**\n");
+        prompt.append("1️⃣ 고객 상황: 이름 + 나이 + 등급 + 현재 요금제 + 데이터 사용량\n");
+        prompt.append("2️⃣ 상품 특징: 이 상품만의 구체적인 장점/혜택\n");
+        prompt.append("3️⃣ 연결고리: 왜 이 고객에게 이 상품이 맞는지 논리적 설명\n");
+        prompt.append("**최소 길이: 2-3문장, 100자 이상**\n\n");
 
-        prompt.append(buildProductResponseFormat(exampleReason));
+        prompt.append("[\n");
+        prompt.append(
+                "  {\"rank\":1, \"productId\":ID, \"reason\":\"구체적이고 상세한 2-3문장\", \"expectedBenefit\":\"혜택\", \"relevanceScore\":85-100},\n");
+        prompt.append(
+                "  {\"rank\":2, \"productId\":ID, \"reason\":\"구체적이고 상세한 2-3문장\", \"expectedBenefit\":\"혜택\", \"relevanceScore\":85-100},\n");
+        prompt.append(
+                "  {\"rank\":3, \"productId\":ID, \"reason\":\"구체적이고 상세한 2-3문장\", \"expectedBenefit\":\"혜택\", \"relevanceScore\":85-100}\n");
+        prompt.append("]\n");
 
         return prompt.toString();
     }
@@ -471,280 +435,104 @@ public class CustomerRecommendationService {
 
         StringBuilder prompt = new StringBuilder();
 
-        prompt.append("당신은 KT의 전문 상품 추천 컨설턴트입니다.\n");
-        prompt.append("특정 마케팅 캠페인에 맞춰 고객에게 가장 적합한 상품 3가지를 추천해주세요.\n\n");
+        prompt.append("🚨 **절대 준수 규칙 - 위반 시 추천 무효** 🚨\n\n");
 
-        prompt.append("🎯 **핵심 미션**: 아래 캠페인과 고객을 위한 최적의 상품을 찾아주세요!\n\n");
-
-        prompt.append(String.format("⚠️ **중요**: 이 고객은 **%d세**입니다. ", customer.getAge()));
-        prompt.append("상품명에 연령 제한이 있으면 절대 준수하세요!\n\n");
-
-        prompt.append("🚫 **절대 추천 금지 상품**:\n");
-        prompt.append("- 군인 전용 상품 (고객의 군인 여부 정보 없음)\n");
-        prompt.append("- 외국인 전용 상품 (고객의 국적 정보 없음)\n");
-        prompt.append("- 장애인/복지 대상자 전용 상품 (고객의 복지 대상 여부 정보 없음)\n");
-        prompt.append("→ 이러한 상품은 이미 필터링되었으므로 목록에 없습니다.\n\n");
-
-        prompt.append("### 🎁 타겟 마케팅 캠페인 (매우 중요)\n");
-        prompt.append(String.format("- **캠페인명**: %s\n", campaign.getName()));
-        prompt.append(String.format("- **캠페인 유형**: %s\n", campaign.getType().getDisplayName()));
-        if (campaign.getDescription() != null && !campaign.getDescription().isEmpty()) {
-            prompt.append(String.format("- **캠페인 설명**: %s\n", campaign.getDescription()));
-        }
-        if (campaign.getStartDate() != null && campaign.getEndDate() != null) {
-            prompt.append(String.format("- **캠페인 기간**: %s ~ %s\n",
-                    campaign.getStartDate(), campaign.getEndDate()));
-        }
-        prompt.append("\n");
-
-        getCustomerProfileInfoToJson(customer, prompt);
-
-        prompt.append("### 📋 추천 가능 상품 목록\n");
-        prompt.append("✅ 아래 상품들은 이미 연령 및 특수 조건 필터링을 거쳤습니다.\n");
-        prompt.append(buildDetailedProductListInfo(products));
-        prompt.append("\n");
-
-        prompt.append("## 🎯 추천 기준 (반드시 준수)\n\n");
-
-        prompt.append("⚖️ **추천 균형 원칙**:\n");
-        prompt.append("- 캠페인 목적 부합도: 50%\n");
-        prompt.append("- 고객 프로필 적합도: 50%\n");
-        prompt.append("→ 두 요소를 균형있게 고려하여 추천하세요.\n\n");
-
-        prompt.append("#### 1. 논리적 적합성 검증 (필수)\n");
-        prompt.append("추천 전에 다음을 반드시 확인하세요:\n");
-        prompt.append("- 이 상품이 캠페인 목적(신규유치/고객유지/업셀링 등)에 부합하는가?\n");
-        prompt.append(String.format("- ⚠️ **이 고객은 %d세입니다!** 상품명에 연령 제한이 있으면 절대 추천 금지!\n",
-                customer.getAge()));
+        prompt.append("❌ 규칙0: **반드시 정확히 3개 추천** (1개나 2개는 불가)\n");
 
         if (customer.getCurrentPlan() != null) {
             String currentPlan = customer.getCurrentPlan();
             if (currentPlan.contains("5G")) {
-                prompt.append(String.format("- 🚨 **다운그레이드 금지**: 현재 '%s' 사용 중 → LTE나 3G 요금제 추천 절대 금지!\n", currentPlan));
-                prompt.append("- 5G 요금제 또는 동급 이상 상품만 추천 가능\n");
+                prompt.append(String.format("❌ 규칙1: 고객은 '%s' 사용 중 → **LTE/3G 추천 절대 금지**\n", currentPlan));
             } else if (currentPlan.contains("LTE")) {
-                prompt.append(String.format("- 🚨 **다운그레이드 금지**: 현재 '%s' 사용 중 → 3G 요금제 추천 절대 금지!\n", currentPlan));
-                prompt.append("- LTE 요금제 또는 5G 업그레이드 상품 추천 가능\n");
+                prompt.append(String.format("❌ 규칙1: 고객은 '%s' 사용 중 → **3G 추천 절대 금지**\n", currentPlan));
             }
+        }
+
+        if (customer.getAvgDataUsageGb() != null) {
+            BigDecimal dataUsage = customer.getAvgDataUsageGb();
+            prompt.append(String.format("❌ 규칙2: 고객 데이터 %.1fGB/월 → **%.1fGB 미만 요금제 추천 금지**\n",
+                    dataUsage, dataUsage));
         }
 
         if (customer.getMembershipLevel() != null) {
-            String membership = customer.getMembershipLevel().getDescription();
-            if (membership.contains("VIP") || membership.contains("VVIP")) {
-                prompt.append(
-                        String.format("- 💎 **프리미엄 고객**: %s 등급 → 저가형 상품(슬림/베이직) 추천 지양, 프리미엄/시그니처급 우선\n", membership));
-            }
-        }
-
-        if (customer.getAvgDataUsageGb() != null && customer.getAvgDataUsageGb().compareTo(new BigDecimal("50")) > 0) {
-            prompt.append(
-                    String.format("- 📊 **헤비 유저**: 월 %.1fGB 사용 → 대용량/무제한 데이터 요금제 필수\n", customer.getAvgDataUsageGb()));
-        }
-
-        if (customer.getAvgDataUsageGb() != null) {
-            prompt.append(String.format("- 💾 **데이터 사용량 검증 필수**: 추천 요금제의 데이터 제공량이 %.1fGB 이상이어야 함\n",
-                    customer.getAvgDataUsageGb()));
-            prompt.append("  (무제한 요금제는 자동 통과, 요고 다이렉트 같은 소용량 요금제는 사용량 부족 시 추천 금지)\n");
-        }
-
-        if (customer.getMembershipLevel() != null && customer.getCurrentPlan() != null) {
             String membership = customer.getMembershipLevel().name();
-            String currentPlan = customer.getCurrentPlan();
-
-            prompt.append("- 💰 **멤버십별 가격대 제한** (모바일 요금제 한정):\n");
-
             if (membership.equals("WHITE") || membership.equals("BASIC")) {
-                prompt.append(String.format("  WHITE/BASIC 등급 → 현재 요금제(%s) 기준 ±20%% 가격대 내 추천 권장\n", currentPlan));
-                prompt.append("  (예: 5만원 요금제 → 4만~6만원대 추천, 급격한 업셀링 지양)\n");
+                prompt.append("❌ 규칙3: WHITE/BASIC → **현재 가격 ±20% 초과 금지**\n");
             } else if (membership.equals("SILVER") || membership.equals("GOLD")) {
-                prompt.append(String.format("  SILVER/GOLD 등급 → 현재 요금제(%s) 기준 ±30%% 가격대 내 추천 권장\n", currentPlan));
-                prompt.append("  (적당한 업셀링 가능)\n");
+                prompt.append("❌ 규칙3: SILVER/GOLD → **현재 가격 ±30% 초과 지양**\n");
             } else if (membership.contains("VIP")) {
-                prompt.append(String.format("  VIP/VVIP 등급 → 프리미엄 고객이므로 가격대 제한 없음\n"));
-                prompt.append("  (고가 요금제 자유롭게 추천 가능)\n");
+                prompt.append("✅ 규칙3: VIP/VVIP → 가격 제한 없음\n");
             }
         }
 
-        prompt.append("- 모바일 카테고리 상품이라면 위 조건들을 철저히 검토\n");
-        prompt.append("- 기타 카테고리(OTT, 디바이스, 생활편의 등)는 고객 프로필에 맞춰 자유롭게 추천\n");
-        prompt.append("- 고객의 현재 상황에서 캠페인 목표 달성 가능성이 있는가?\n\n");
+        prompt.append("\n🔥 위 4가지 규칙 위반 = 즉시 제외! 🔥\n");
+        prompt.append("=".repeat(60) + "\n\n");
 
-        prompt.append("#### 2. reason 작성 3단계 (구체적으로)\n\n");
-        prompt.append("**[1단계] 고객의 현재 상황 분석**\n");
-        prompt.append(String.format("- %s님은 %d세, %s 등급, %s 거주\n",
-                customer.getName(),
-                customer.getAge(),
-                customer.getMembershipLevel() != null ? customer.getMembershipLevel().getDescription() : "일반",
-                customer.getRegion() != null ? customer.getRegion().getDescription() : ""));
-
-        if (customer.getJoinDate() != null) {
-            long yearsAsCustomer = ChronoUnit.YEARS.between(customer.getJoinDate(), LocalDateTime.now());
-            prompt.append(String.format("- %d년 이용 고객\n", yearsAsCustomer));
-        }
-
-        if (customer.getCurrentPlan() != null) {
-            prompt.append(String.format("- 현재 %s 사용 중\n", customer.getCurrentPlan()));
-        }
-
-        if (customer.getRecencyDays() != null) {
-            prompt.append(String.format("- %d일 동안 미구매 → %s\n",
-                    customer.getRecencyDays(),
-                    customer.getRecencyDays() > 365 ? "이탈 위험" : "활동 중"));
+        prompt.append("## 타겟 캠페인\n");
+        prompt.append(String.format("%s (%s)\n", campaign.getName(), campaign.getType().getDisplayName()));
+        if (campaign.getDescription() != null) {
+            prompt.append(String.format("혜택: %s\n", campaign.getDescription()));
         }
         prompt.append("\n");
 
-        prompt.append("**[2단계] 캠페인-상품 연결고리 파악**\n");
-        prompt.append(String.format("- 이 캠페인(%s)의 목적은 무엇인가?\n", campaign.getType().getDisplayName()));
-        prompt.append("- 이 상품이 캠페인 목표 달성에 어떻게 기여하는가?\n");
-        prompt.append("- 고객의 현재 상황에서 이 조합이 효과적인가?\n\n");
+        prompt.append("## 고객\n");
+        prompt.append(String.format("%s / %d세 / %s\n",
+                customer.getName(),
+                customer.getAge(),
+                customer.getMembershipLevel() != null ? customer.getMembershipLevel().getDescription() : "일반"));
+        prompt.append(String.format("현재: %s", customer.getCurrentPlan()));
+        if (customer.getAvgDataUsageGb() != null) {
+            prompt.append(String.format(" / %.1fGB 사용", customer.getAvgDataUsageGb()));
+        }
+        prompt.append("\n\n");
 
-        prompt.append("**[3단계] 종합 설명 (reason 작성)**\n");
-        prompt.append("reason에 반드시 포함할 내용:\n");
-        prompt.append("1. 캠페인 목적과 이 상품의 연관성 (50%)\n");
-        prompt.append("2. 고객의 현재 상황에서 이 상품이 적합한 이유 (50%)\n");
-        prompt.append("3. 캠페인-상품-고객의 시너지 효과\n\n");
+        prompt.append("## 상품 목록\n");
+        for (Product p : products) {
+            String priceStr = p.getPrice() != null ? String.format("%,d원", p.getPrice().intValue()) : "가격 미정";
+            prompt.append(String.format("[%d] %s | %s | %s\n",
+                    p.getProductId(),
+                    p.getName(),
+                    priceStr,
+                    p.getCategory()));
+        }
+        prompt.append("\n");
 
-        String exampleReason = buildProductWithCampaignExampleReason(customer, campaign);
+        prompt.append("## 추천 원칙\n");
+        prompt.append("캠페인 목적 50% + 고객 적합성 50%\n\n");
 
-        prompt.append("**reason 예시:**\n");
-        prompt.append(String.format("\"%s\"\n\n", exampleReason));
+        prompt.append("## 추천 전 체크리스트\n");
+        prompt.append("[ ] 캠페인 목적에 맞는가?\n");
+        prompt.append("[ ] 다운그레이드 아닌가?\n");
+        prompt.append("[ ] 데이터 사용량 충분한가?\n");
+        prompt.append("[ ] 멤버십 가격대 맞는가?\n");
+        prompt.append("\n⚠️ 모바일 요금제가 부족하면 OTT/디바이스/생활편의 카테고리 추천\n\n");
 
-        prompt.append(buildProductResponseFormat(exampleReason));
+        prompt.append("## 응답 (JSON만, 다른 텍스트 금지)\n");
+        prompt.append("⚠️ **반드시 정확히 3개 추천 필수** (더 많거나 적으면 안됨)\n\n");
+
+        prompt.append("### ✍️ reason 작성 규칙 (매우 중요)\n");
+        prompt.append("❌ 나쁜 예: \"인터넷 속도 업그레이드 특별 할인, 김다혜, 5G 스탠다드 사용 중\" (단어만 나열)\n");
+        prompt.append("❌ 나쁜 예: \"캠페인 혜택이 좋아서 추천\" (너무 짧고 성의없음)\n");
+        prompt.append(
+                "✅ 좋은 예: \"'인터넷 속도 업그레이드 특별 할인' 캠페인은 김다혜님(27세, WHITE 등급, 5G 스탠다드 사용 중)에게 적합합니다. 이 상품은 [구체적 상품 특징]을 제공하며, 캠페인의 [구체적 할인/혜택]과 결합하여 고객의 [니즈/상황]에 최적화된 솔루션을 제공합니다.\"\n\n");
+
+        prompt.append("**reason 필수 포함 (4가지 모두):**\n");
+        prompt.append("1️⃣ 캠페인명: 정확한 캠페인 이름\n");
+        prompt.append("2️⃣ 고객 상황: 이름 + 나이 + 등급 + 현재 요금제\n");
+        prompt.append("3️⃣ 상품 특징: 이 상품의 구체적 장점\n");
+        prompt.append("4️⃣ 시너지 설명: 캠페인 혜택 + 상품 특징이 고객에게 주는 가치\n");
+        prompt.append("**최소 길이: 2-3문장, 100자 이상**\n\n");
+
+        prompt.append("[\n");
+        prompt.append(
+                "  {\"rank\":1, \"productId\":ID, \"reason\":\"구체적이고 상세한 2-3문장\", \"expectedBenefit\":\"혜택\", \"relevanceScore\":85-100},\n");
+        prompt.append(
+                "  {\"rank\":2, \"productId\":ID, \"reason\":\"구체적이고 상세한 2-3문장\", \"expectedBenefit\":\"혜택\", \"relevanceScore\":85-100},\n");
+        prompt.append(
+                "  {\"rank\":3, \"productId\":ID, \"reason\":\"구체적이고 상세한 2-3문장\", \"expectedBenefit\":\"혜택\", \"relevanceScore\":85-100}\n");
+        prompt.append("]\n");
 
         return prompt.toString();
-    }
-
-
-    private String buildDetailedProductListInfo(List<Product> products) {
-        StringBuilder info = new StringBuilder();
-
-        for (int i = 0; i < products.size(); i++) {
-            Product product = products.get(i);
-            info.append(String.format("\n**[상품 %d]**\n", i + 1));
-            info.append(String.format("- productId: %d\n", product.getProductId()));
-            info.append(String.format("- 상품명: %s\n", product.getName()));
-            info.append(String.format("- 카테고리: %s\n", product.getCategory()));
-
-            if (product.getPrice() != null) {
-                info.append(String.format("- 정상가: %,d원\n", product.getPrice().intValue()));
-
-                if (product.getDiscountRate() != null && product.getDiscountRate().compareTo(BigDecimal.ZERO) > 0) {
-                    BigDecimal discountedPrice = product.getDiscountedPrice();
-                    info.append(String.format("- 할인율: %d%%\n", product.getDiscountRate().intValue()));
-                    info.append(String.format("- 할인가: %,d원\n", discountedPrice.intValue()));
-                }
-            }
-
-            if (product.getBenefits() != null && !product.getBenefits().isEmpty()) {
-                info.append("- 주요 혜택:\n");
-                info.append(formatBenefits(product.getBenefits()));
-            }
-        }
-
-        return info.toString();
-    }
-
-    private String buildProductRecommendationExampleReason(Customer customer) {
-        StringBuilder reason = new StringBuilder();
-
-        reason.append(String.format("%s 고객은 %d세 %s 등급으로 ",
-                customer.getName(),
-                customer.getAge(),
-                customer.getMembershipLevel() != null ? customer.getMembershipLevel().getDescription() : "회원"));
-
-        if (customer.getCurrentPlan() != null) {
-            reason.append(String.format("%s를 사용 중이며 ", customer.getCurrentPlan()));
-        }
-
-        if (customer.getAvgDataUsageGb() != null) {
-            reason.append(String.format("월 %.1fGB의 데이터를 소비하는 ", customer.getAvgDataUsageGb()));
-            if (customer.getAvgDataUsageGb().compareTo(new BigDecimal("50")) > 0) {
-                reason.append("헤비 ");
-            }
-            reason.append("유저입니다. ");
-        }
-
-        boolean isVIP = customer.getMembershipLevel() != null &&
-                (customer.getMembershipLevel().getDescription().contains("VIP"));
-
-        if (isVIP) {
-            reason.append("프리미엄 고객으로서 더 나은 서비스를 추구하시는 고객입니다. ");
-            reason.append("이 상품은 [상품의 프리미엄 특징]을 제공하며, ");
-            reason.append("고객의 [현재 니즈]를 충족시키면서 ");
-            reason.append("[업그레이드/추가 혜택]을 통해 [가치 향상 효과]를 얻을 수 있습니다.");
-        } else {
-            reason.append("이 상품은 [상품의 핵심 특징]을 제공하며, ");
-            reason.append("고객의 [구체적 상황/니즈]를 고려할 때 ");
-            reason.append("[실질적 혜택]을 통해 [기대 효과]를 얻을 수 있습니다.");
-        }
-
-        return reason.toString();
-    }
-
-    private String buildProductWithCampaignExampleReason(Customer customer, Campaign campaign) {
-        StringBuilder reason = new StringBuilder();
-
-        reason.append(String.format("%s 고객은 %d세 %s 등급으로 ",
-                customer.getName(),
-                customer.getAge(),
-                customer.getMembershipLevel() != null ? customer.getMembershipLevel().getDescription() : "회원"));
-
-        if (customer.getJoinDate() != null) {
-            long years = ChronoUnit.YEARS.between(customer.getJoinDate(), LocalDateTime.now());
-            reason.append(String.format("%d년 이용 고객이며 ", years));
-        }
-
-        if (customer.getCurrentPlan() != null) {
-            reason.append(String.format("%s를 사용 중입니다. ", customer.getCurrentPlan()));
-        }
-
-        reason.append(String.format("'%s' 캠페인은 %s를 목표로 하며, ",
-                campaign.getName(),
-                campaign.getType().getDisplayName()));
-
-        boolean isVIP = customer.getMembershipLevel() != null &&
-                (customer.getMembershipLevel().getDescription().contains("VIP"));
-
-        if (isVIP) {
-            reason.append("프리미엄 고객인 점을 고려하여 ");
-            reason.append("이 상품은 [프리미엄 상품 특징]을 통해 캠페인 목적에 부합하고, ");
-            reason.append("고객의 [현재 프리미엄 니즈]를 충족시키면서 [캠페인 혜택 + 상품 혜택]을 통해 ");
-            reason.append("[가치 극대화 효과]를 달성할 수 있습니다.");
-        } else {
-            reason.append("이 상품은 [상품 특징]을 통해 캠페인 목적에 부합하고, ");
-            reason.append("고객의 [현재 상황]을 고려할 때 [캠페인 혜택 + 상품 혜택]을 통해 ");
-            reason.append("[기대 효과]를 달성할 수 있습니다.");
-        }
-
-        return reason.toString();
-    }
-
-    private String buildProductResponseFormat(String exampleReason) {
-        StringBuilder format = new StringBuilder();
-
-        format.append("### 📤 응답 형식 (JSON만 출력, 다른 텍스트 금지)\n");
-        format.append("[\n");
-        format.append("  {\n");
-        format.append("    \"rank\": 1,\n");
-        format.append("    \"productId\": 상품ID(숫자),\n");
-        format.append(String.format("    \"reason\": \"%s\",\n", exampleReason));
-        format.append("    \"expectedBenefit\": \"고객이 실제 받을 수 있는 구체적 혜택\",\n");
-        format.append("    \"relevanceScore\": 85-100 사이 점수\n");
-        format.append("  },\n");
-        format.append("  ... (총 3개 추천)\n");
-        format.append("]\n\n");
-
-        format.append("### ✅ 응답 규칙\n");
-        format.append("- **rank**: 1 (최우선), 2, 3 순서대로 부여 (필수)\n");
-        format.append("- **productId**: 위 상품 목록의 ID 중 선택 (반드시)\n");
-        format.append("- **reason**: 고객 이름과 구체적 상황 포함한 개인화된 설명 (200자 이내)\n");
-        format.append("  → 일반적 마케팅 용어 지양, 이 고객만의 맞춤 이유 설명\n");
-        format.append("  → 고객의 현재 요금제, 멤버십, 사용 패턴 등 구체적 데이터 활용\n");
-        format.append("- **expectedBenefit**: 이 고객이 이 상품으로 얻는 실질적 혜택 (150자 이내)\n");
-        format.append("- **relevanceScore**: 고객 적합도를 정확히 반영한 85-100 사이 점수\n");
-        format.append("- 반드시 3개 상품 추천 (더 많거나 적으면 안됨)\n");
-
-        return format.toString();
     }
 
     private List<AIRecommendedProduct> callOpenAIForProductRecommendation(String prompt) {
@@ -764,7 +552,7 @@ public class CustomerRecommendationService {
                                     .content(prompt)
                                     .build()
                     ))
-                    .temperature(0.7)
+                    .temperature(0.3)
                     .maxTokens(1500)
                     .build();
 
@@ -1017,7 +805,7 @@ public class CustomerRecommendationService {
                                     .content(prompt)
                                     .build()
                     ))
-                    .temperature(0.7)
+                    .temperature(0.3)
                     .maxTokens(1500)
                     .build();
 
