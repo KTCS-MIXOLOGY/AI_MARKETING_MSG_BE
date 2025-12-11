@@ -2,6 +2,7 @@ package com.ai_marketing_msg_be.domain.customer.controller;
 
 import com.ai_marketing_msg_be.common.dto.ApiResponse;
 import com.ai_marketing_msg_be.domain.customer.dto.CampaignRecommendationResponse;
+import com.ai_marketing_msg_be.domain.customer.dto.ProductRecommendationResponse;
 import com.ai_marketing_msg_be.domain.customer.service.CustomerRecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,7 +42,7 @@ public class CustomerRecommendationController {
 
             HttpServletRequest httpRequest) {
 
-        log.info("GET /executor/customers/{}/campaigns/recommendations - productId: {}",
+        log.info("Recommend Campaign Request - customerId: {} , productId: {}",
                 customerId, productId);
 
         CampaignRecommendationResponse response =
@@ -51,4 +52,32 @@ public class CustomerRecommendationController {
 
         return ApiResponse.ok(response, httpRequest.getRequestURI());
     }
+
+    @GetMapping("/{customerId}/products/recommendations")
+    @PreAuthorize("hasRole('EXECUTOR')")
+    @Operation(
+            summary = "고객 맞춤 상품 추천",
+            description = "특정 고객에게 적합한 마케팅 상품을 AI 기반으로 추천합니다. " + "campaignId를 지정하면 해당 캠페인 마케팅에 최적인 상품을 추천합니다."
+    )
+    public ApiResponse<ProductRecommendationResponse> recommendProducts(
+            @Parameter(description = "고객 ID", example = "1", required = true)
+            @PathVariable Long customerId,
+
+            @Parameter(description = "타겟 캠페인 ID (선택사항)", example = "2")
+            @RequestParam(required = false) Long campaignId,
+
+            HttpServletRequest httpRequest
+    ) {
+        log.info("Recommend Product Request - customerId: {}, campaignId: {}",
+                customerId, campaignId);
+
+        ProductRecommendationResponse response = recommendationService.recommendProducts(customerId, campaignId);
+
+        log.info("상품 추천 완료 - 추천 개수: {}", response.getRecommendations().size());
+
+        return ApiResponse.ok(response, httpRequest.getRequestURI());
+
+    }
+
+
 }
