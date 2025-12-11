@@ -253,7 +253,7 @@ public class PromptTemplateEngine {
         req.append("3. **가격/할인 정보** (있는 경우)\n");
         req.append("4. **타겟 고객에 대한 호칭** (예: VIP 고객님, 20대 여성 고객님)\n");
         req.append("5. **명확한 행동 유도(CTA)**\n");
-        req.append("6. 이모지를 적절히 활용하여 시각적 효과 극대화\n\n");
+        req.append("6. 이모지는 절대 사용하지 마세요. 텍스트로만 작성해주세요.\n\n");
 
         req.append("**글자 수**: 90-120자 이내\n\n");
 
