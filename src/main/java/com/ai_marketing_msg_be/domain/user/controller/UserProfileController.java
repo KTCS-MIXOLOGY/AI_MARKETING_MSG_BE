@@ -1,0 +1,81 @@
+package com.ai_marketing_msg_be.domain.user.controller;
+
+
+import com.ai_marketing_msg_be.auth.details.CustomUserDetails;
+import com.ai_marketing_msg_be.common.dto.ApiResponse;
+import com.ai_marketing_msg_be.domain.user.dto.GetUserDetailResponse;
+import com.ai_marketing_msg_be.domain.user.dto.UpdateMyInfoRequest;
+import com.ai_marketing_msg_be.domain.user.dto.UpdatePasswordRequest;
+import com.ai_marketing_msg_be.domain.user.dto.UpdatePasswordResponse;
+import com.ai_marketing_msg_be.domain.user.dto.UpdateUserResponse;
+import com.ai_marketing_msg_be.domain.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@Slf4j
+@RestController
+@RequestMapping("/users")
+@RequiredArgsConstructor
+public class UserProfileController {
+
+    private final UserService userService;
+
+    @GetMapping("/me")
+    public ApiResponse<GetUserDetailResponse> me(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            HttpServletRequest request
+    ) {
+        log.info("customUserDetails: {}", customUserDetails);
+
+        Long userId = customUserDetails.getUserId();
+
+        log.info("My profile request - userId: {}", userId);
+
+        GetUserDetailResponse response = userService.me(userId);
+
+        return ApiResponse.ok(response, request.getRequestURI());
+    }
+
+    @PatchMapping("/me")
+    public ApiResponse<UpdateUserResponse> me(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestBody UpdateMyInfoRequest updateMyInfoRequest,
+            HttpServletRequest request) {
+        log.info("customUserDetails: {}", customUserDetails);
+
+        Long userId = customUserDetails.getUserId();
+
+        log.info("My profile request - userId: {}", userId);
+
+        UpdateUserResponse response = userService.update(userId, updateMyInfoRequest);
+
+        return ApiResponse.ok(response, request.getRequestURI());
+    }
+
+    @PatchMapping("/me/password")
+    public ApiResponse<UpdatePasswordResponse> password9(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestBody UpdatePasswordRequest updatePasswordRequest,
+            HttpServletRequest request
+    ) {
+
+        log.info("cusstomUserDetails: {}", customUserDetails);
+
+        Long userId = customUserDetails.getUserId();
+
+        log.info("My profile request - userId: {}", userId);
+
+        UpdatePasswordResponse response = userService.updatePassword(userId, updatePasswordRequest);
+
+        return ApiResponse.ok(response, request.getRequestURI());
+    }
+
+
+}

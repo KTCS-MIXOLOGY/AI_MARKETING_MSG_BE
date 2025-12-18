@@ -1,19 +1,31 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL_DEV}
+    url: ${SPRING_DATASOURCE_URL_DEV:jdbc:mysql://localhost:3306/mixology?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8}
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${SPRING_DATASOURCE_USERNAME_DEV}
-    password: ${SPRING_DATASOURCE_PASSWORD_DEV}
+    username: ${SPRING_DATASOURCE_USERNAME_DEV:root}
+    password: ${SPRING_DATASOURCE_PASSWORD_DEV:0000}
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 
 jwt:
-  secret: ${JWT_SECRET_DEV}
+  secret: ${JWT_SECRET_DEV:mixology-jwt-secret-key-for-development-environment-must-be-at-least-256-bits-long-for-HS256-algorithm}
   access-token-expiration: 3600000
   refresh-token-expiration: 1209600000
+
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
+    url: https://api.openai.com/v1/chat/completions
+    model: gpt-4o-mini
+    timeout: 30000
+    max-tokens: 500
+    temperature: 0.7
 
 logging:
   level:

@@ -35,5 +35,23 @@ logging:
     com.soar_be: DEBUG
     org.hibernate.SQL: DEBUG
 
+app:
+  admin:
+    username: ${ADMIN_USERNAME}
+    password: ${ADMIN_PASSWORD}
+    email: ${ADMIN_EMAIL}
+    name: ${ADMIN_NAME}
+    phone: ${ADMIN_PHONE}
+    department: ${ADMIN_DEPARTMENT}
+
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
+    url: https://api.openai.com/v1/chat/completions
+    model: gpt-4o-mini
+    timeout: 30000
+    max-tokens: 1500
+    temperature: 0.7
+
 server:
   port: 8080
